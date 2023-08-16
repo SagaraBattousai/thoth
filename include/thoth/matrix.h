@@ -93,8 +93,8 @@ namespace thoth
 		template<CONSTRAINT(Addable<T>) U>
 		Matrix& operator+=(const Matrix<U>& rhs);
 
-		template<typename T, CONSTRAINT(Addable<T>) U>
-		friend Matrix<T> operator+(Matrix<T> matrix, const U& scalar)
+		template<typename V, CONSTRAINT(Addable<V>) U>
+		friend Matrix<V> operator+(Matrix<V> matrix, const U& scalar)
 		{
 			matrix += scalar;
 			return matrix;
@@ -113,18 +113,18 @@ namespace thoth
 		template<CONSTRAINT(Multiplyable<T>) U>
 		Matrix& operator*=(const Matrix<U>& rhs);
 
-		template<typename T, CONSTRAINT(Multiplyable<T>) U>
-		friend Matrix<T> operator*(Matrix<T> matrix, const U& scalar)
+		template<typename V, CONSTRAINT(Multiplyable<V>) U>
+		friend Matrix<V> operator*(Matrix<V> matrix, const U& scalar)
 		{
 			matrix *= scalar;
 			return matrix;
 		};
 
-		template<typename T, CONSTRAINT(Multiplyable<T>) U>
-		friend Matrix<T> operator*(Matrix<T> lhs, const Matrix<T>& rhs)
+		template<typename V, CONSTRAINT(Multiplyable<V>) U>
+		friend Matrix<V> operator*(Matrix<V> lhs, const Matrix<U>& rhs)
 		{
-			matrix *= rhs;
-			return matrix;
+			lhs *= rhs;
+			return lhs;
 		};
 
 
@@ -152,9 +152,9 @@ namespace thoth
 
 	template<typename T>
 	constexpr Matrix<T>::Matrix(std::initializer_list<size_type> dimensions, std::initializer_list<T> values)
-		: values_(values)
-		, dimensions_(dimensions)
+		: dimensions_(dimensions)
 		, flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1, std::multiplies<size_type>()))
+		,values_(values)
 	{	}
 
 	template<typename T>
@@ -234,7 +234,7 @@ namespace thoth
 	Matrix<T>& Matrix<T>::operator+=(const U& scalar)
 	{
 		//std::for_each is equal in release but I do a lotta debug work so......
-		for (size_type i = 0; i < this->values_.size(); ++i)
+		for (typename std::vector<T>::size_type i = 0; i < this->values_.size(); ++i)
 		{
 			this->values_[i] += scalar;
 		}
@@ -283,7 +283,7 @@ namespace thoth
 			}
 			else
 			{
-				for (size_type i = 0; i < this->values_.size(); ++i)
+				for (dimensions_type::size_type i = 0; i < this->values_.size(); ++i)
 				{
 					this->values_[i] *= rhs.values_[i];
 				}
@@ -307,7 +307,8 @@ namespace thoth
 
 			//dangerous to iterate backwards as vector's sizetype is unsigned 
 			//(I now see why)
-			for (auto i = 0; i < smaller_dims_size; ++i)
+      //Seems Clang 15's auto doesnt work it out here
+			for (dimensions_type::size_type i = 0; i < smaller_dims_size; ++i)
 			{
 				if (larger_matrix_dimensions[i + dim_size_diff] != smaller_matrix_dimensions[i])
 				{

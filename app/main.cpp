@@ -20,7 +20,7 @@ int main()
 	auto e1 = std::chrono::high_resolution_clock::now();
 
 	auto s2 = std::chrono::high_resolution_clock::now();
-	for (int j = 0; j < b.size(); ++j)
+	for (std::vector<int>::size_type j = 0; j < b.size(); ++j)
 	{
 		b[j] += s;
 	}
