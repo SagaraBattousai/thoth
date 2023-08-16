@@ -1,17 +1,17 @@
 .. Documentation master file
 
-Welcome to <Project_Name>'s documentation!
+Welcome to Thoth's documentation!
 ==========================================
-**<Project_Name>** is ...
+**Thoth** is a light weight, SIMD optimised C interop Matrix Library
 
 .. note::
    This project is under active development
 
 .. toctree::
    :maxdepth: 1
-   :caption: <Caption>
-   :name: <sec-name>
+   :caption: Thoth
+   :name: sec-thoth
 
-   <project>/index
+   thoth/matrix
 
 * :ref:`genindex`

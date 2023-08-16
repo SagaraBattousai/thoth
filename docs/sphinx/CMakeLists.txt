@@ -26,7 +26,7 @@ macro(configure_sphinx_and_add_command)
 
   #set(SPHINX_JS "${SPHINX_STATIC_DIR}/js/falcie.js")
 
-  set(SPHINX_ICON_IMAGE_PATH "img/<ICON_IMAGE>.svg")
+  #set(SPHINX_ICON_IMAGE_PATH "\"img/<ICON_IMAGE>.svg\"")
 
   # Now everything should be C++
   set(BREATHE_DOMAIN_BY_EXTENSION_DICT 

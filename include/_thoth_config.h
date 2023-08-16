@@ -1,0 +1,56 @@
+#ifndef __THOTH_CONFIG_H__
+#define __THOTH_CONFIG_H__
+
+//May be able to remove this constexpr shizz
+//I think this version supports all the c++20 features I like
+
+/*
+#if _MSC_VER >= 1928
+#define CONSTEXPR_FUNC constexpr
+#endif // _MSC_VER 
+
+#if __clang__ //Due to Android iirc
+#define CONSTEXPR_FUNC
+#endif
+*/
+
+
+#if __cpp_concepts >= 201907
+#define REQUIRES(x) requires x
+#define CONSTRAINT(x) x
+#else
+#define REQUIRES(x)
+#define CONSTRAINT(x) typename
+#endif // __cpp_concepts (lower part)
+
+//Using EXPORT and LOCAL instead of EXPORT and NO_EXPORT to 
+//Make it harder to mistakenly type export when you don't mean to.
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+#ifdef THOTH_BUILD_DLL
+#define THOTH_EXPORT __declspec(dllexport)
+#else
+#define THOTH_EXPORT __declspec(dllimport) 
+#endif
+#define THOTH_LOCAL
+#else
+#ifndef __has_attribute
+#define __has_attribute(x) 0  // Compatibility with non-clang compilers.
+#endif
+
+#if (defined(__GNUC__) && (__GNUC__ >= 4)) ||\
+      (defined(__clang__) && __has_attribute(visibility))
+
+#define THOTH_EXPORT __attribute__ ((visibility ("default")))
+#define THOTH_LOCAL  __attribute__ ((visibility ("hidden")))
+#else
+#define THOTH_EXPORT
+#define THOTH_LOCAL
+#endif
+#endif
+
+
+
+
+
+#endif

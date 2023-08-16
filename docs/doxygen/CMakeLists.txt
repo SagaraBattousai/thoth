@@ -1,14 +1,17 @@
 
 # Set: DOXYGEN_INPUT_FILES based on passed in targets' sources.
 function(set_doxygen_input_files)
-  if(ARGC LESS 2)
+  if(ARGC LESS 1)
     message(WARNING "Needs additional arguments; namely targets \
     whos source files require/want documentation.")
     return()
   endif()
 
   foreach(target ${ARGN})
-    get_target_property(target_sources ${target} SOURCES)
+    #get_target_property(target_sources ${target} SOURCES)
+    #Switching to header set as we document in the header
+    get_target_property(target_sources ${target} HEADER_SET)
+
     foreach(source ${target_sources})    
     # BASE_DIRECTORY unneeded as this file is in the same directory as
     # Doxygen.in 
@@ -16,13 +19,13 @@ function(set_doxygen_input_files)
         RELATIVE_PATH source
         OUTPUT_VARIABLE source_relative_to_doxygen)
 
-      # Space at end is important so that we dont have to use 
-      # list(APPEND ...) and then string(JOIN .....)
-      string(APPEND SOURCE_TO_DOCUMENT "${source_relative_to_doxygen} ")
+      list(APPEND DOCUMENTED_HEADERS ${source_relative_to_doxygen})
     endforeach()
   endforeach()
 
-  set(DOXYGEN_INPUT_FILES ${SOURCE_TO_DOCUMENT} PARENT_SCOPE)
+  set(DOXYGEN_INPUT_FILES ${DOCUMENTED_HEADERS} PARENT_SCOPE)
+  list(JOIN DOCUMENTED_HEADERS " " INPUT_FILES)
+  set(DOXYGEN_INPUT_FILES ${INPUT_FILES} PARENT_SCOPE)
 
 endfunction()
 
