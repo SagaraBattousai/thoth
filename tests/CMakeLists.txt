@@ -3,10 +3,16 @@ include(FetchContent)
 
 set(googletest_commit_hash "f8d7d77c06936315286eb55f8de22cd23c188571")
 
+if (WIN32)
+set(googletest_commit_hash_and_ext "${googletest_commit_hash}.zip")
+else()
+set(googletest_commit_hash_and_ext "${googletest_commit_hash}.tar.gz")
+endif()
+
 #VV Faster than git repo :)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/${googletest_commit_hash}.zip
+  URL https://github.com/google/googletest/archive/${googletest_commit_hash_and_ext}
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
