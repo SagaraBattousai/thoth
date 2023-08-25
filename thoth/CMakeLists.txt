@@ -5,7 +5,10 @@ set(cpp_sources "matrix_base.cpp" "square_matrix_base.cpp")
 set(c_sources "")
 set(thoth_module
   "${THOTH_MODULE_ROOT}/matrix.h"
+  "${THOTH_MODULE_ROOT}/matrix_bool.h"
   "${THOTH_MODULE_ROOT}/square_matrix.h"
+  "${THOTH_MODULE_ROOT}/concepts.h"
+  "${THOTH_MODULE_ROOT}/utils.h"
   )
 
 if(MSVC)

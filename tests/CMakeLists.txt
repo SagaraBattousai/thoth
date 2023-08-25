@@ -24,24 +24,24 @@ endif()
 FetchContent_MakeAvailable(googletest)
 
 set(testing_sources 
-  "matrix.cpp"
+  "utils.cpp"
   )
 
-add_executable(tests ${testing_sources})
+add_executable(thoth_tests ${testing_sources})
 
-set_property(TARGET tests PROPERTY FOLDER Tests)
+set_property(TARGET thoth_tests PROPERTY FOLDER Tests)
 set_target_properties(gtest gtest_main gmock gmock_main 
   PROPERTIES FOLDER Tests/googleTest)
 
-target_link_libraries(tests PRIVATE GTest::gtest_main)
-target_include_directories(tests PRIVATE 
+target_link_libraries(thoth_tests PRIVATE GTest::gtest_main)
+target_include_directories(thoth_tests PRIVATE 
   $<TARGET_PROPERTY:thoth,INCLUDE_DIRECTORIES>)
 
 if(WIN32)
-  # symlink_library_to_target(tests pulse)
+  # symlink_library_to_target(thoth_tests pulse)
 endif()
 
 include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(thoth_tests)
 
 

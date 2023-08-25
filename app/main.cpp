@@ -1,41 +1,23 @@
-#include <iostream>
-
 #include <thoth/matrix.h>
-#include <vector>
+
 #include <algorithm>
 #include <chrono>
+#include <iostream>
+#include <vector>
 
+int main() {
+  thoth::Matrix<float> m(
+      {2, 2, 3, 4},
+      {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+       17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+       34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50});
 
-int main()
-{
-	thoth::Matrix<float> m({ 3,3 }, { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 });
-	std::cout << "OKAY" << std::endl;
+  thoth::Matrix<float> m2({4},
+                          {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                           13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25});
 
-	std::vector<int> b{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  std::cout << m2 << "\n\n\n\n" << std::endl;
+  std::cout << m << std::endl;
 
-	const int s = 5;
-
-	auto s1 = std::chrono::high_resolution_clock::now();
-	m += s;
-	auto e1 = std::chrono::high_resolution_clock::now();
-
-	auto s2 = std::chrono::high_resolution_clock::now();
-	for (std::vector<int>::size_type j = 0; j < b.size(); ++j)
-	{
-		b[j] += s;
-	}
-	auto e2 = std::chrono::high_resolution_clock::now();
-
-	auto t1 = e1 - s1;
-	auto t2 = e2 - s2;
-
-	std::cout << "for_each " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1).count() << std::endl;
-
-	std::cout << "raw " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2).count() << std::endl;
-
-	thoth::Matrix<float> f = thoth::Matrix<float>::Like(m);
-
-	std::cout << (m.Shape() == f.Shape()) << std::endl;
-
-	return 0;
+  return 0;
 }

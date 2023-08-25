@@ -14,6 +14,15 @@
 #endif
 */
 
+#ifdef _MSC_VER
+#define REGION(x) _Pragma("region " #x)
+#define END_REGION _Pragma("endregion")
+//#define END_REGION(x) _Pragma("endregion " #x)
+#else
+#define REGION(x)
+#define END_REGION
+#endif
+
 
 #if __cpp_concepts >= 201907
 #define REQUIRES(x) requires x
