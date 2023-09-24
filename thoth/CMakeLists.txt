@@ -24,8 +24,5 @@ target_sources(thoth PUBLIC
   TYPE HEADERS
   BASE_DIRS ${MODULE_ROOT}
   FILES ${thoth_module}
-  "${MODULE_ROOT}/_thoth_config.h" # Probably should be private although ...
+  # "${MODULE_ROOT}/_thoth_config.h" # Probably should be private although ...
   )
-
-
-

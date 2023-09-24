@@ -10,6 +10,7 @@ docs/sphinx/_static/css/_*
 
 # Distribution / packaging
 build/
+unix_build/
 
 # Prerequisites
 *.d

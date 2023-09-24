@@ -32,36 +32,79 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj);
 template <typename T, typename U>
 MatrixBroadcastType Broadcastable(const Matrix<T>*& lhs, const Matrix<U>*& rhs);
 
+// I hate how messy template classes are :(
 template <typename T>
 class Matrix  // Its a header, it doesn't need to be exported
 {
  public:
   using size_type = int;
 
+ private:
+  // Private Constructors
+
+  // Final constructor in delegation chain requiring validation
+  // Be sure to re read move semantics
+  constexpr explicit Matrix(std::vector<size_type>&& dimensions,
+                            std::vector<T>&& values);
+
+  // Final constructor in delegation chain requiring no validation and is
+  // therefore noexcept
+  constexpr Matrix(std::vector<size_type>&& dimensions,
+                   const T& value) noexcept;
+
+  constexpr Matrix(const std::vector<size_type>& dimensions,
+                   const T& value) noexcept
+      : Matrix(std::vector(dimensions), value){};
+
+  constexpr explicit Matrix(const std::vector<size_type>& dimensions) noexcept
+      : Matrix(std::vector(dimensions), T()){};
+
+  // One more will need to be added
+
+ public:
+  // Public Constructors and constructor like static Members
+
   constexpr Matrix(std::initializer_list<size_type> dimensions,
-                   std::initializer_list<T> values);
+                   const T& value) noexcept
+      : Matrix(std::vector(dimensions), value){};
 
-  constexpr Matrix(std::initializer_list<size_type> dimensions, const T& value);
+  constexpr Matrix(std::initializer_list<size_type> dimensions,
+                   std::initializer_list<T> values)
+      : Matrix(std::vector(dimensions), std::vector(values)){};
 
-  constexpr explicit Matrix(std::initializer_list<size_type> dimensions);
-
-  static constexpr Matrix Zeros(std::initializer_list<size_type> dimensions);
+  // I think this is fine vs not providing T to vector
+  constexpr explicit Matrix(
+      std::initializer_list<size_type> dimensions) noexcept
+      : Matrix(std::vector(dimensions), T()){};
 
   template <class InputIt>
   constexpr Matrix(std::initializer_list<size_type> dimensions, InputIt first,
-                   InputIt last);
+                   InputIt last)
+      : Matrix(std::vector(dimensions), std::vector(first, last)){};
 
-  // Could =default as I dont know what im doing but I will try with both
-  constexpr Matrix(Matrix&& other);  // is it trivial?
+  // Works as long as this is compatable with the pointer (test this)
+  constexpr Matrix(Matrix&& other) = default;
 
   // copy ctor must be manually written as shared_ptr copy is "non" trivial
-  constexpr Matrix(const Matrix& other);
+  constexpr Matrix(const Matrix& other) noexcept;
+
+  static constexpr Matrix Zeros(std::initializer_list<size_type> dimensions) {
+    return Matrix(dimensions, (T)0);
+  };
 
   template <typename V>
-  static constexpr Matrix ZerosLike(const Matrix<V>& other);
+  static constexpr Matrix ZerosLike(const Matrix<V>& other) {
+    return Matrix(other.Shape(), (T)0);
+  };
 
   template <typename V>
-  static constexpr Matrix Like(const Matrix<V>& other);
+  static constexpr Matrix Like(const Matrix<V>& other) {
+    return Matrix(other.Shape());
+  };
+
+  // End of constructors and Static constructor like members
+
+  // Properties
 
   constexpr const std::vector<size_type>& Shape() const noexcept {
     return this->dimensions_;
@@ -70,6 +113,11 @@ class Matrix  // Its a header, it doesn't need to be exported
   constexpr const size_type& Size() const noexcept {
     return this->flattened_dims_;
   }
+
+  // Operators
+
+  // Implement convertable types and as type laters
+  constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept;
 
   template <CONSTRAINT(Comparable<T>) U>
   Matrix<bool> operator<=>(const Matrix<U>& rhs);
@@ -119,30 +167,26 @@ class Matrix  // Its a header, it doesn't need to be exported
     return lhs;
   };
 
-  // friend std::ostream& operator<< <T>(std::ostream& os, const Matrix& obj);
-
  private:
   // Just to save typeing hence private
-  using dimensions_type = const std::vector<size_type>;
+  using dimensions_type = std::vector<size_type>;
 
-  constexpr explicit Matrix(const std::vector<size_type>& dimensions);
+  // End of Private constructors
 
-  constexpr Matrix(const std::vector<size_type>& dimensions, const T& value);
-
-  // Be sure to re read move semantics
-  constexpr explicit Matrix(std::vector<size_type>&& dimensions,
-                            std::vector<T>&& values);
+  // Members
 
   // static constexpr
 
   // Datamember order matters! (for member init list)!
-  dimensions_type dimensions_;  // const (its in the using which i dont like)
+  const dimensions_type dimensions_;
 
   // Cant be constexpr but all constructors are :(
   const size_type flattened_dims_;  // may be too small but want it to be solid
                                     // on 32 bit machines too
 
   std::shared_ptr<std::vector<T>> values_;
+
+  T* const data_start_;
 };
 
 template <>
@@ -152,94 +196,47 @@ class Matrix<bool>;
 //////////////////////// Constructors ///////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-constexpr Matrix<T>::Matrix(std::initializer_list<size_type> dimensions,
-                            std::initializer_list<T> values)
-    : dimensions_(dimensions),
-      flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
-                                  std::multiplies<size_type>())),
-      values_(std::make_shared<std::vector<T>>(values)) {}
-
-template <typename T>
-constexpr Matrix<T>::Matrix(std::initializer_list<size_type> dimensions,
-                            const T& value)
-    : dimensions_(dimensions),
-      flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
-                                  std::multiplies<size_type>())),
-      values_(std::make_shared<std::vector<T>>(flattened_dims_, value)) {}
-
-template <typename T>
-constexpr Matrix<T>::Matrix(std::initializer_list<size_type> dimensions)
-    : dimensions_(dimensions),
-      flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
-                                  std::multiplies<size_type>())),
-      values_(std::make_shared<std::vector<T>>(flattened_dims_)) {}
-
-// Private:
-template <typename T>
-constexpr Matrix<T>::Matrix(const std::vector<size_type>& dimensions)
-    : dimensions_(dimensions),
-      flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
-                                  std::multiplies<size_type>())),
-      values_(std::make_shared<std::vector<T>>(flattened_dims_)) {}
-
-// Private
-template <typename T>
-constexpr Matrix<T>::Matrix(const std::vector<size_type>& dimensions,
-                            const T& value)
-    : dimensions_(dimensions),
-      flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
-                                  std::multiplies<size_type>())),
-      values_(std::make_shared<std::vector<T>>(flattened_dims_, value)) {}
-
-// Private
+// Private: Final constructor in delegation chain requiring validation
+// Be sure to re read move semantics
 template <typename T>
 constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
                             std::vector<T>&& values)
     : dimensions_(std::move(dimensions)),
       flattened_dims_(std::reduce(dimensions_.begin(), dimensions_.end(), 1,
                                   std::multiplies<size_type>())),
-      values_(std::make_shared<std::vector<T>>(std::move(values)))
+      values_(std::make_shared<std::vector<T>>(std::move(values))),
+      data_start_(values_->data()) {}
 
-{}
-
+// Private:  Final constructor in delegation chain requiring no validation
+//  and is therefore noexcept
 template <typename T>
-constexpr Matrix<T> Matrix<T>::Zeros(
-    std::initializer_list<size_type> dimensions) {
-  return Matrix(dimensions, (T)0);
-}
-
-template <typename T>
-template <class InputIt>
-constexpr Matrix<T>::Matrix(std::initializer_list<size_type> dimensions,
-                            InputIt first, InputIt last)
+constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
+                            const T& value) noexcept
     : dimensions_(dimensions),
       flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
                                   std::multiplies<size_type>())),
-      values_(first, last) {}
+      values_(std::make_shared<std::vector<T>>(flattened_dims_, value)),
+      data_start_(values_->data()) {}
 
+//No except as other should be already validated. Check this.
 template <typename T>
-constexpr Matrix<T>::Matrix(Matrix&& other)
-    : dimensions_(std::move(other.dimensions_)),
-      flattened_dims_(std::move(other.flattened_dims_)),
-      values_(std::move(other.values_)) {}
-
-template <typename T>
-constexpr Matrix<T>::Matrix(const Matrix& other)
+constexpr Matrix<T>::Matrix(const Matrix& other) noexcept
     : dimensions_(other.dimensions_),
       flattened_dims_(other.flattened_dims_),
-      values_(std::make_shared<std::vector<T>>(*other.values_)) {}
+      values_(std::make_shared<std::vector<T>>(*other.values_)),
+      data_start_(values_->data()) {}
 
+// No except as other should be already validated. Check this.
 template <typename T>
-template <typename V>
-constexpr Matrix<T> Matrix<T>::ZerosLike(const Matrix<V>& other) {
-  return Matrix(other.Shape(), (T)0);
-}
-
-template <typename T>
-template <typename V>
-constexpr Matrix<T> Matrix<T>::Like(const Matrix<V>& other) {
-  return Matrix(other.Shape());
+constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
+  if (this != &other)  // i.e. not self assignment
+  {
+    this->dimensions_ = other.dimensions_;
+    this->flattened_dims_ = other.flattened_dims_;
+    this->values_ = std::make_shared<std::vector<T>>(*other.values_);
+    this->data_start_ = this->values_->data();
+  }
+  return *this;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -259,8 +256,8 @@ template <typename T>
 template <CONSTRAINT(Comparable<T>) U>
 Matrix<bool> Matrix<T>::operator<=>(const Matrix<U>& rhs) {
   // Order is arbitary as long as the dims are in the same order
-  dimensions_type* smaller_matrix_dimensions = &(this->dimensions_);
-  dimensions_type* larger_matrix_dimensions = &(rhs.dimensions_);
+  const dimensions_type* smaller_matrix_dimensions = &(this->dimensions_);
+  const dimensions_type* larger_matrix_dimensions = &(rhs.dimensions_);
 
   Min(smaller_matrix_dimensions, larger_matrix_dimensions,
       this->dimensions_.size(), rhs.dimensions_.size());
@@ -398,12 +395,10 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
   const auto row_mod = obj.Shape()[ndims - 2] * column_mod;
   const auto block_mod = row_mod * (ndims > 2 ? obj.Shape()[ndims - 3] : 1);
 
-
   while (index < obj.Size()) {
     os << obj[index];
-   
-    if (index % column_mod < column_mod - 1)
-    {
+
+    if (index % column_mod < column_mod - 1) {
       os << ", ";
     }
 
@@ -411,12 +406,10 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
 
     if (ndims > 2 && index % block_mod == 0) {
       os << "\n\n\n";
-    }
-    else if (index % row_mod == 0) //will always be 0 if previous is
+    } else if (index % row_mod == 0)  // will always be 0 if previous is
     {
       os << "\n\n";
-    } 
-    else if (index % column_mod == 0) //will always be 0 if previous is
+    } else if (index % column_mod == 0)  // will always be 0 if previous is
     {
       os << "\n";
     }

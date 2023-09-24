@@ -24,6 +24,7 @@ endif()
 FetchContent_MakeAvailable(googletest)
 
 set(testing_sources 
+  "matrix.cpp"
   "utils.cpp"
   )
 
