@@ -1,4 +1,4 @@
-#ifndef __THOTH_MATRIX_H__
+﻿#ifndef __THOTH_MATRIX_H__
 #define __THOTH_MATRIX_H__
 
 #include <_thoth_config.h>
@@ -13,11 +13,6 @@
 #include <vector>
 
 namespace thoth {
-// template<typename T, int n, int... dims>
-// class Matrix { };
-
-// template<typename T, int a, int b>
-// class Matrix<T, a, b> { };
 
 enum class MatrixBroadcastType : char { kEqual, kBroadcast };
 
@@ -27,7 +22,6 @@ class Matrix;
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj);
 
-// Was going to be in anon namespace but it's good!
 // However, BroadcastType cant be in Matrix therefore called MAtrixBroadcastType
 template <typename T, typename U>
 MatrixBroadcastType Broadcastable(const Matrix<T>*& lhs, const Matrix<U>*& rhs);
@@ -38,12 +32,13 @@ class Matrix  // Its a header, it doesn't need to be exported
 {
  public:
   using size_type = int;
+  using slice_type = std::pair<size_type, size_type>;
 
  private:
-  // Private Constructors
-
+#pragma region FINAL_CONSTRUCTORS
   // Final constructor in delegation chain requiring validation
   // Be sure to re read move semantics
+  // Does this still need to be explicit?
   constexpr explicit Matrix(std::vector<size_type>&& dimensions,
                             std::vector<T>&& values);
 
@@ -52,17 +47,19 @@ class Matrix  // Its a header, it doesn't need to be exported
   constexpr Matrix(std::vector<size_type>&& dimensions,
                    const T& value) noexcept;
 
-  constexpr Matrix(const std::vector<size_type>& dimensions,
-                   const T& value) noexcept
-      : Matrix(std::vector(dimensions), value){};
+  // Final constructor for view []operator
+  // can assume validation has already been completed on the constructor
+  // from which this matrix is a view of.
+  constexpr Matrix(std::vector<size_type>&& dimensions,
+                   const std::vector<size_type>& strides,
+                   const std::shared_ptr<std::vector<T>>& values,
+                   T* const data_start) noexcept;
 
-  constexpr explicit Matrix(const std::vector<size_type>& dimensions) noexcept
-      : Matrix(std::vector(dimensions), T()){};
-
-  // One more will need to be added
+#pragma endregion
 
  public:
-  // Public Constructors and constructor like static Members
+// Public Constructors and constructor like static Members
+#pragma region CONSTRUCTORS
 
   constexpr Matrix(std::initializer_list<size_type> dimensions,
                    const T& value) noexcept
@@ -85,7 +82,8 @@ class Matrix  // Its a header, it doesn't need to be exported
   // Works as long as this is compatable with the pointer (test this)
   constexpr Matrix(Matrix&& other) = default;
 
-  // copy ctor must be manually written as shared_ptr copy is "non" trivial
+  // Also a final constructor
+  //  copy ctor must be manually written as shared_ptr copy is "non" trivial
   constexpr Matrix(const Matrix& other) noexcept;
 
   static constexpr Matrix Zeros(std::initializer_list<size_type> dimensions) {
@@ -102,9 +100,10 @@ class Matrix  // Its a header, it doesn't need to be exported
     return Matrix(other.Shape());
   };
 
-  // End of constructors and Static constructor like members
+#pragma endregion
 
-  // Properties
+// Properties
+#pragma region PROPERTIES
 
   constexpr const std::vector<size_type>& Shape() const noexcept {
     return this->dimensions_;
@@ -114,21 +113,32 @@ class Matrix  // Its a header, it doesn't need to be exported
     return this->flattened_dims_;
   }
 
-  // Operators
+#pragma endregion
+
+// Operators
+#pragma region OPERATORS
 
   // Implement convertable types and as type laters
-  constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept;
+  constexpr Matrix& operator=(const Matrix& other) noexcept;
+
+  constexpr Matrix& operator=(Matrix&& other) = default;
 
   template <CONSTRAINT(Comparable<T>) U>
   Matrix<bool> operator<=>(const Matrix<U>& rhs);
 
-  //[] operator for flat access
-  T& operator[](size_type i) { return (*values_)[i]; }
-  constexpr T& operator[](size_type i) const { return (*values_)[i]; }
+  //[] operator for flat access. May not be ideal to expose
+  // but relativly safe and allows us to unfriend operator<<
+  const T& operator[](size_type) const;
 
-  // Matrix<T>& operator[](std::initializer_list<size_type> indicies);
-  // const Matrix<T>& operator[](std::initializer_list<size_type> indicies)
-  // const;
+  //[] operator for element access
+  T& operator[](std::initializer_list<size_type>);
+  const T& operator[](std::initializer_list<size_type>) const;
+
+  //[] operator for views / view access
+  // const as function wont modify this;
+  // however, the returned matrix shares the same values
+  // pairs that create the range [get<0>slice, get<1>slice)
+  Matrix operator[](std::initializer_list<slice_type> indicies) const;
 
   // Plus and mult operators
   template <CONSTRAINT(Addable<T>) U>
@@ -137,11 +147,13 @@ class Matrix  // Its a header, it doesn't need to be exported
   template <CONSTRAINT(Addable<T>) U>
   Matrix& operator+=(const Matrix<U>& rhs);
 
+  /*
   template <typename V, CONSTRAINT(Addable<V>) U>
   friend Matrix<V> operator+(Matrix<V> matrix, const U& scalar) {
     matrix += scalar;
     return matrix;
   };
+  */
 
   template <CONSTRAINT(Addable<T>) U>
   friend Matrix operator+(Matrix lhs, const Matrix<U>& rhs) {
@@ -155,73 +167,162 @@ class Matrix  // Its a header, it doesn't need to be exported
   template <CONSTRAINT(Multiplyable<T>) U>
   Matrix& operator*=(const Matrix<U>& rhs);
 
-  template <typename V, CONSTRAINT(Multiplyable<V>) U>
-  friend Matrix<V> operator*(Matrix<V> matrix, const U& scalar) {
+  // For the two below leave at least on matrix type as T (i.e. the one this
+  // class uses else redefinition errors (loop somewhere)
+  template <CONSTRAINT(Multiplyable<T>) U>
+  friend Matrix<T> operator*(Matrix<T> matrix, const U& scalar) {
     matrix *= scalar;
     return matrix;
   };
 
-  template <typename V, CONSTRAINT(Multiplyable<V>) U>
-  friend Matrix<V> operator*(Matrix<V> lhs, const Matrix<U>& rhs) {
+  // friend in order to allow definition inside class?!?
+  template <CONSTRAINT(Multiplyable<T>) U>
+  friend Matrix<T> operator*(Matrix<T> lhs, const Matrix<U>& rhs) {
     lhs *= rhs;
     return lhs;
   };
+
+#pragma endregion
 
  private:
   // Just to save typeing hence private
   using dimensions_type = std::vector<size_type>;
 
-  // End of Private constructors
+// Private constructors
+#pragma region PRIVATE_CONSTRUCTORS
+  constexpr Matrix(const std::vector<size_type>& dimensions,
+                   const T& value) noexcept
+      : Matrix(std::vector(dimensions), value){};
 
-  // Members
+  constexpr explicit Matrix(const std::vector<size_type>& dimensions) noexcept
+      : Matrix(std::vector(dimensions), T()){};
 
-  // static constexpr
+  // One more will need to be added
+
+#pragma endregion
+
+#pragma region PRIVATE_OPERATORS
+#pragma endregion
+
+#pragma region PRIVATE_UTILITY_FUNCTIONS
+
+  // May be buggy but I can't predict.
+  // Is it possible for two different dimensions to have the same strides
+  // and a different number of "total" elements.
+  constexpr bool IsContiguous() const {
+    std::vector<size_type> contiguous_strides(strides_.size());
+    std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
+                        contiguous_strides.rbegin(), 1, std::multiplies<>{});
+
+    return this->strides_ == contiguous_strides;
+  };
+
+  // vector instead of init_list or iter or pointer etc
+  //  PRE: indicies.size() == strides_.size()
+  constexpr size_type IndexOffset(
+      std::vector<size_type> indicies) const noexcept {
+    return ZipWithReduce<>(strides_.begin(), strides_.end(), indicies.begin(),
+                           0, std::multiplies<>(), std::plus<>());
+  }
+
+  constexpr size_type FlatIndexForView(size_type flat_index) const noexcept {
+    std::vector<size_type> view_strides(strides_.size());
+    std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
+                        view_strides.rbegin(), 1, std::multiplies<>{});
+
+    std::vector<size_type> indicies(this->dimensions_.size());
+
+    for (int i = 0; i < this->dimensions_.size(); ++i) {
+      indicies[i] = (size_type)(flat_index / view_strides[i]);
+      flat_index = flat_index % view_strides[i];
+    }
+
+    return IndexOffset(indicies);
+  }
+
+#pragma endregion
+
+// Members
+#pragma region MEMBERS
 
   // Datamember order matters! (for member init list)!
   const dimensions_type dimensions_;
+
+  dimensions_type strides_;
 
   // Cant be constexpr but all constructors are :(
   const size_type flattened_dims_;  // may be too small but want it to be solid
                                     // on 32 bit machines too
 
-  std::shared_ptr<std::vector<T>> values_;
+  const std::shared_ptr<std::vector<T>> values_;
 
   T* const data_start_;
+
+#pragma endregion
 };
 
 template <>
 class Matrix<bool>;
+
+// template <typename V, CONSTRAINT(Multiplyable<V>) U>
+// Matrix<V> operator*(Matrix<V> matrix, const U& scalar) {
+//   matrix *= scalar;
+//   return matrix;
+// };
 
 /////////////////////////////////////////////////////////////////////////////
 //////////////////////// Constructors ///////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
 // Private: Final constructor in delegation chain requiring validation
-// Be sure to re read move semantics
 template <typename T>
 constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
                             std::vector<T>&& values)
     : dimensions_(std::move(dimensions)),
+      strides_(dimensions_.size()),
       flattened_dims_(std::reduce(dimensions_.begin(), dimensions_.end(), 1,
                                   std::multiplies<size_type>())),
       values_(std::make_shared<std::vector<T>>(std::move(values))),
-      data_start_(values_->data()) {}
+      data_start_(values_->data()) {
+  std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
+                      strides_.rbegin(), 1, std::multiplies<>{});
+}
 
 // Private:  Final constructor in delegation chain requiring no validation
 //  and is therefore noexcept
 template <typename T>
 constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
                             const T& value) noexcept
-    : dimensions_(dimensions),
-      flattened_dims_(std::reduce(dimensions.begin(), dimensions.end(), 1,
+    : dimensions_(std::move(dimensions)),
+      strides_(dimensions_.size()),
+      flattened_dims_(std::reduce(dimensions_.begin(), dimensions_.end(), 1,
                                   std::multiplies<size_type>())),
       values_(std::make_shared<std::vector<T>>(flattened_dims_, value)),
-      data_start_(values_->data()) {}
+      data_start_(values_->data()) {
+  std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
+                      strides_.rbegin(), 1, std::multiplies<>{});
+}
 
-//No except as other should be already validated. Check this.
+// Final constructor for view []operator
+// can assume validation has already been completed on the constructor
+// from which this matrix is a view of.
+template <typename T>
+constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
+                            const std::vector<size_type>& strides,
+                            const std::shared_ptr<std::vector<T>>& values,
+                            T* const data_start) noexcept
+    : dimensions_(std::move(dimensions)),
+      strides_(strides),
+      flattened_dims_(std::reduce(dimensions_.begin(), dimensions_.end(), 1,
+                                  std::multiplies<size_type>())),
+      values_(values),
+      data_start_(data_start) {}
+
+// No except as other should be already validated. Check this.
 template <typename T>
 constexpr Matrix<T>::Matrix(const Matrix& other) noexcept
     : dimensions_(other.dimensions_),
+      strides_(other.strides_),
       flattened_dims_(other.flattened_dims_),
       values_(std::make_shared<std::vector<T>>(*other.values_)),
       data_start_(values_->data()) {}
@@ -232,6 +333,7 @@ constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
   if (this != &other)  // i.e. not self assignment
   {
     this->dimensions_ = other.dimensions_;
+    this->strides_ = other.strides_;
     this->flattened_dims_ = other.flattened_dims_;
     this->values_ = std::make_shared<std::vector<T>>(*other.values_);
     this->data_start_ = this->values_->data();
@@ -245,12 +347,73 @@ constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
 //////////////////////// Operators //////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-/*
+//[] operator for element access
 template <typename T>
-Matrix<T>& Matrix<T>::operator[](std::initializer_list<size_type> indicies) {
-  return (*this)[*indicies.begin()];
+T& Matrix<T>::operator[](std::initializer_list<size_type> indicies) {
+  if (indicies.size() != this->dimensions_.size()) {
+    throw std::invalid_argument(
+        "The number of indicies must match the number of dimensions of this "
+        "matrix.");
+  }
+  return *(this->data_start_ + this->IndexOffset(indicies));
 }
-*/
+
+template <typename T>
+const T& Matrix<T>::operator[](
+    std::initializer_list<size_type> indicies) const {
+  if (indicies.size() != this->dimensions_.size()) {
+    throw std::invalid_argument(
+        "The number of indicies must match the number of dimensions of this "
+        "matrix.");
+  }
+  return *(this->data_start_ + this->IndexOffset(indicies));
+}
+
+//[] operator for views / view access
+template <typename T>
+Matrix<T> Matrix<T>::operator[](
+    std::initializer_list<slice_type> indicies) const {
+  std::vector<size_type> new_dimensions{this->dimensions_};
+  auto index_ptr = indicies.begin();
+  for (size_type i = 0; i < indicies.size(); ++i) {
+    auto index = index_ptr + i;
+    if (index->second > this->dimensions_[i] || index->first < 0) {
+      throw std::invalid_argument(
+          "A Slice range contains and invalid start or end value.");
+    }
+
+    if (index->second <= index->first) {
+      // learn how to interpolate error message without sprintf etc
+      throw std::invalid_argument(
+          "A Slice contains a zero width or negative range.");
+    }
+
+    new_dimensions[i] = index->second - index->first;
+  }
+
+  size_type offset = ZipWithReduce<>(
+      indicies.begin(), indicies.end(), strides_.begin(), 0,
+      [](const Matrix<T>::slice_type& a, const size_type& b) {
+        return (size_type)(a.first * b);
+      },
+      std::plus<>());
+
+  // should last arg be from pointer into new values_ even thought they both
+  // point to the same address?
+  return Matrix(std::move(new_dimensions), this->strides_, this->values_,
+                this->data_start_ + offset);
+}
+
+// Flat access [] operator
+template <typename T>
+const T& Matrix<T>::operator[](size_type index) const {
+  // maybe constepr if ???
+  if (IsContiguous()) {
+    return (*(this->values_))[index];
+  }
+
+  return *(this->data_start_ + this->FlatIndexForView(index));
+}
 
 template <typename T>
 template <CONSTRAINT(Comparable<T>) U>
@@ -276,6 +439,7 @@ Matrix<bool> Matrix<T>::operator<=>(const Matrix<U>& rhs) {
   }
 }
 
+// Overload resolution should handle this when U is a matrix
 template <typename T>
 template <CONSTRAINT(Addable<T>) U>
 Matrix<T>& Matrix<T>::operator+=(const U& scalar) {

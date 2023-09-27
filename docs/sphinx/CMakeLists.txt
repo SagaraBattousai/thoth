@@ -22,7 +22,7 @@ macro(configure_sphinx_and_add_command)
   ")
 
 
-  # set(SPHINX_JS_FILES_LIST "") #"\"js/falcie_docs.js\","
+  #set(SPHINX_JS_FILES_LIST "") #"\"js/falcie_docs.js\","
 
   #set(SPHINX_JS "${SPHINX_STATIC_DIR}/js/falcie.js")
 
@@ -34,52 +34,19 @@ macro(configure_sphinx_and_add_command)
      \"ixx\" : \"cpp\",
      ")
 
-  #TODO: Once etro (the C wrapper) is up and running
-  # set(BREATHE_DOMAIN_BY_FILE_PATTERN_DICT "
-  # \"*/include/etro .....\" : \"c\",
-
   configure_file(${SPHINX_CONF_IN} ${SPHINX_CONF_OUT} @ONLY)
 
   # As this is a macro, this will be the directory of the caller! :)
   set(SPHINX_DOXYGEN_XML_DIR 
     "${CMAKE_CURRENT_SOURCE_DIR}/${DOXYGEN_OUTPUT_DIRECTORY}/xml")
 
-  set(PULSE_DOC_ROOT   "${SPHINX_ROOT_DIRECTORY}/pulse")
-  set(LINDZEI_DOC_ROOT "${SPHINX_ROOT_DIRECTORY}/lindzei")
-  set(ETRO_DOC_ROOT    "${SPHINX_ROOT_DIRECTORY}/etro")
-
-  # Sphinx rst's Hand wrriten just like source code :P
-  # Listed Hierarchically
   set(SPHINX_RESTRUCTRED_TEXT 
     #Root Index
     "${SPHINX_ROOT_DIRECTORY}/index.rst"
+
+    "${SPHINX_ROOT_DIRECTORY}/thoth/matrix.rst"
+    "${SPHINX_ROOT_DIRECTORY}/thoth/utils.rst"
     
-    #Libraries
-    "${PULSE_DOC_ROOT}/index.rst"
-    "${ETRO_DOC_ROOT}/index.rst"
-    "${LINDZEI_DOC_ROOT}/index.rst"
-
-    #Pulse Sub-Modules
-    "${PULSE_DOC_ROOT}/anima/index.rst"
-    #"${PULSE_DOC_ROOT}/atomos/index.rst"
-    "${PULSE_DOC_ROOT}/cactuar/index.rst"
-    "${PULSE_DOC_ROOT}/dahaka/index.rst"
-
-    #pulse::anima Modules
-    "${PULSE_DOC_ROOT}/anima/matrix.rst"
-    "${PULSE_DOC_ROOT}/anima/neural_network.rst"
-    "${PULSE_DOC_ROOT}/anima/random.rst"
-
-    #pulse::cactuar Modules
-    "${PULSE_DOC_ROOT}/cactuar/crypto.rst"
-    "${PULSE_DOC_ROOT}/cactuar/encoding.rst"
-    "${PULSE_DOC_ROOT}/cactuar/target.rst"
-
-    #pulse::dahaka
-    "${PULSE_DOC_ROOT}/dahaka/blockchain.rst"
-    "${PULSE_DOC_ROOT}/dahaka/chain.rst"
-    "${PULSE_DOC_ROOT}/dahaka/orderedlist.rst"
-    "${PULSE_DOC_ROOT}/dahaka/tree.rst"
     )
 
   add_custom_command(OUTPUT ${SPHINX_HTML_INDEX_FILE}

@@ -113,7 +113,7 @@ html_js_files = [
 ]
 
 
-html_logo =  #"img/<ICON_IMAGE>.svg"
+#html_logo =  #"img/<ICON_IMAGE>.svg"
 
 ######################################################################
 ## Read the docs config ##

@@ -1,19 +1,27 @@
-#include <thoth/matrix.h>
 
 #include <memory>
 #include <vector>
 #include <initializer_list>
+#include <numeric>
 #include <iostream>
+#include <iterator>
+
+#include <thoth/matrix.h>
 
 int main() {
   
-  std::shared_ptr<std::vector<int>> ptr = 
-    std::make_shared<std::vector<int>>(std::initializer_list{1, 2, 3, 4, 5, 6, 7, 8, 9});
+  std::vector<thoth::Matrix<float>> vec;
+  std::vector<int> strides(1);
 
-  const int *ptr1 = ptr->data();
-  const int *ptr5 = ptr->data() + 5;
 
-  std::cout << (ptr1 == ptr->data()) << ", " << (ptr5 == ptr->data()) << std::endl;
+  for (int i = (int)strides.size() - 1; i >= 0; --i)
+  {
+    std::cout << vec[i] << ", " << strides[i] << " : ";
+  }
+
+  std::cout << std::endl;
+
+  using rint = int&&;  
 
   return 0;
 }

@@ -13,5 +13,6 @@ Welcome to Thoth's documentation!
    :name: sec-thoth
 
    thoth/matrix
+   thoth/utils
 
 * :ref:`genindex`

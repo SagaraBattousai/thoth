@@ -24,8 +24,8 @@ endif()
 FetchContent_MakeAvailable(googletest)
 
 set(testing_sources 
-  "matrix.cpp"
-  "utils.cpp"
+  "matrix_tests.cpp"
+  "utils_tests.cpp"
   )
 
 add_executable(thoth_tests ${testing_sources})
