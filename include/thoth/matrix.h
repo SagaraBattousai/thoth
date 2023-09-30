@@ -246,10 +246,11 @@ class Matrix  // Its a header, it doesn't need to be exported
 #pragma region MEMBERS
 
   // Datamember order matters! (for member init list)!
-  const dimensions_type dimensions_;
+  const std::vector<size_type> dimensions_;
 
-  dimensions_type strides_;
+  const std::vector<size_type> strides_;
 
+  //How to use const with move operator
   // Cant be constexpr but all constructors are :(
   const size_type flattened_dims_;  // may be too small but want it to be solid
                                     // on 32 bit machines too
@@ -285,7 +286,7 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
       values_(std::make_shared<std::vector<T>>(std::move(values))),
       data_start_(values_->data()) {
   std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
-                      strides_.rbegin(), 1, std::multiplies<>{});
+                      const_cast<std::vector<size_type>&>(strides_).rbegin(), 1, std::multiplies<>{});
 }
 
 // Private:  Final constructor in delegation chain requiring no validation
@@ -300,7 +301,7 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
       values_(std::make_shared<std::vector<T>>(flattened_dims_, value)),
       data_start_(values_->data()) {
   std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
-                      strides_.rbegin(), 1, std::multiplies<>{});
+                      const_cast<std::vector<size_type>&>(strides_).rbegin(), 1, std::multiplies<>{});
 }
 
 // Final constructor for view []operator
@@ -332,11 +333,11 @@ template <typename T>
 constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
   if (this != &other)  // i.e. not self assignment
   {
-    this->dimensions_ = other.dimensions_;
-    this->strides_ = other.strides_;
-    this->flattened_dims_ = other.flattened_dims_;
-    this->values_ = std::make_shared<std::vector<T>>(*other.values_);
-    this->data_start_ = this->values_->data();
+    const_cast<std::vector<size_type>&>(this->dimensions_) = other.dimensions_;
+    const_cast<std::vector<size_type>&>(this->strides_) = other.strides_;
+    const_cast<size_type&>(this->flattened_dims_) = other.flattened_dims_;
+    const_cast<std::shared_ptr<std::vector<T>>&>(this->values_) = std::make_shared<std::vector<T>>(*other.values_);
+    const_cast<T*&>(this->data_start_) = this->values_->data();
   }
   return *this;
 }
@@ -455,10 +456,10 @@ template <typename T>
 template <CONSTRAINT(Addable<T>) U>
 Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs) {
   for (size_type i = 0; i < this->values_->size(); ++i) {
-    this->values_->[i] += rhs->values_->[i];
+    (*this->values_)[i] += (*rhs.values_)[i];
   }
 
-  return this;
+  return *this;
 }
 
 template <typename T>
@@ -466,7 +467,7 @@ template <CONSTRAINT(Multiplyable<T>) U>
 Matrix<T>& Matrix<T>::operator*=(const U& scalar) {
   // std::for_each is equal in release but I do a lotta debug work so......
   for (size_type i = 0; i < this->values_->size(); ++i) {
-    this->values_[i] *= scalar;
+    (*this->values_)[i] *= scalar;
   }
   return *this;
 }
@@ -543,7 +544,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
 
   if (ndims == 1) {
     os << "[ ";
-    for (Matrix<T>::size_type i = 0; i < obj.Size(); ++i) {
+    for (typename Matrix<T>::size_type i = 0; i < obj.Size(); ++i) {
       os << " " << obj[i];
       if (i < obj.Size() - 1) {
         os << ", ";
@@ -554,7 +555,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
   }
   // else
 
-  Matrix<T>::size_type index = 0;
+  typename Matrix<T>::size_type index = 0;
   const auto column_mod = obj.Shape()[ndims - 1];
   const auto row_mod = obj.Shape()[ndims - 2] * column_mod;
   const auto block_mod = row_mod * (ndims > 2 ? obj.Shape()[ndims - 3] : 1);
