@@ -25,7 +25,7 @@ set_system_check_vars()
 
 if (MSVC)
   #Wall removed as msvc has some errors that trigger this
-  add_compile_options(/permissive /WX /W4 Wall)
+  add_compile_options(/permissive /WX /W4)
   set(VS_STARTUP_PROJECT "app_cpp_thoth")
 else()
     add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unknown-pragmas)
