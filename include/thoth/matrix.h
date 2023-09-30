@@ -161,8 +161,11 @@ class Matrix  // Its a header, it doesn't need to be exported
     return lhs;
   }
 
-  template <CONSTRAINT(Multiplyable<T>) U>
+  // GCC not happy with this: template <CONSTRAINT(Multiplyable<T>) U> for some
+  // reason I cant work out so im gonna try a cheaky cheat for now.
+  template <Numeric U>
   Matrix& operator*=(const U& scalar);
+
 
   template <CONSTRAINT(Multiplyable<T>) U>
   Matrix& operator*=(const Matrix<U>& rhs);
@@ -261,12 +264,12 @@ class Matrix  // Its a header, it doesn't need to be exported
 
 #pragma endregion
 };
-
+/*
 template <>
 class Matrix<bool>
 {
 };
-
+*/
 
 // template <typename V, CONSTRAINT(Multiplyable<V>) U>
 // Matrix<V> operator*(Matrix<V> matrix, const U& scalar) {
@@ -467,8 +470,10 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs) {
   return *this;
 }
 
+//GCC not happy with this: template <CONSTRAINT(Multiplyable<T>) U> for some
+//reason I cant work out so im gonna try a cheaky cheat for now.
 template <typename T>
-template <CONSTRAINT(Multiplyable<T>) U>
+template <Numeric U>
 Matrix<T>& Matrix<T>::operator*=(const U& scalar) {
   // std::for_each is equal in release but I do a lotta debug work so......
   for (size_type i = 0; i < this->values_->size(); ++i) {

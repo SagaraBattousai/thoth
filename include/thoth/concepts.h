@@ -2,8 +2,13 @@
 #define __THOTH_CONCEPTS_H__
 
 #include <concepts>
+#include <functional>
 
 namespace thoth {
+
+template <typename T>
+concept Numeric = std::integral<T> || std::floating_point<T>;
+
 template <typename U, typename T>
 concept Addable = requires(T a, U b) {
                     { a + b } -> std::convertible_to<T>;
