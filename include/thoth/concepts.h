@@ -2,6 +2,7 @@
 #define __THOTH_CONCEPTS_H__
 
 #include <concepts>
+#include <functional>
 
 namespace thoth {
 template <typename U, typename T>
