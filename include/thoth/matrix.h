@@ -77,7 +77,7 @@ class Matrix  // Its a header, it doesn't need to be exported
   template <class InputIt>
   constexpr Matrix(std::initializer_list<size_type> dimensions, InputIt first,
                    InputIt last)
-      : Matrix(std::vector(dimensions), std::vector(first, last)){};
+      : Matrix(std::vector(dimensions), std::vector(first, last)){}
 
   // Works as long as this is compatable with the pointer (test this)
   constexpr Matrix(Matrix&& other) = default;
@@ -93,12 +93,12 @@ class Matrix  // Its a header, it doesn't need to be exported
   template <typename V>
   static constexpr Matrix ZerosLike(const Matrix<V>& other) {
     return Matrix(other.Shape(), (T)0);
-  };
+  }
 
   template <typename V>
   static constexpr Matrix Like(const Matrix<V>& other) {
     return Matrix(other.Shape());
-  };
+  }
 
 #pragma endregion
 
@@ -159,7 +159,7 @@ class Matrix  // Its a header, it doesn't need to be exported
   friend Matrix operator+(Matrix lhs, const Matrix<U>& rhs) {
     lhs += rhs;
     return lhs;
-  };
+  }
 
   template <CONSTRAINT(Multiplyable<T>) U>
   Matrix& operator*=(const U& scalar);
@@ -173,14 +173,14 @@ class Matrix  // Its a header, it doesn't need to be exported
   friend Matrix<T> operator*(Matrix<T> matrix, const U& scalar) {
     matrix *= scalar;
     return matrix;
-  };
+  }
 
   // friend in order to allow definition inside class?!?
   template <CONSTRAINT(Multiplyable<T>) U>
   friend Matrix<T> operator*(Matrix<T> lhs, const Matrix<U>& rhs) {
     lhs *= rhs;
     return lhs;
-  };
+  }
 
 #pragma endregion
 
@@ -232,7 +232,7 @@ class Matrix  // Its a header, it doesn't need to be exported
 
     std::vector<size_type> indicies(this->dimensions_.size());
 
-    for (int i = 0; i < this->dimensions_.size(); ++i) {
+    for (dimensions_type::size_type i = 0; i < this->dimensions_.size(); ++i) {
       indicies[i] = (size_type)(flat_index / view_strides[i]);
       flat_index = flat_index % view_strides[i];
     }
@@ -263,7 +263,10 @@ class Matrix  // Its a header, it doesn't need to be exported
 };
 
 template <>
-class Matrix<bool>;
+class Matrix<bool>
+{
+};
+
 
 // template <typename V, CONSTRAINT(Multiplyable<V>) U>
 // Matrix<V> operator*(Matrix<V> matrix, const U& scalar) {
@@ -376,7 +379,7 @@ Matrix<T> Matrix<T>::operator[](
     std::initializer_list<slice_type> indicies) const {
   std::vector<size_type> new_dimensions{this->dimensions_};
   auto index_ptr = indicies.begin();
-  for (size_type i = 0; i < indicies.size(); ++i) {
+  for (dimensions_type::size_type i = 0; i < indicies.size(); ++i) {
     auto index = index_ptr + i;
     if (index->second > this->dimensions_[i] || index->first < 0) {
       throw std::invalid_argument(
@@ -438,6 +441,8 @@ Matrix<bool> Matrix<T>::operator<=>(const Matrix<U>& rhs) {
   for (dimensions_type::size_type i = 0; i < smaller_dims_size; ++i) {
     equality_vector[i] = (this->values_[i] <=> rhs.values_[i]);
   }
+  //TODO: IMPLEMENT
+  return Matrix<bool>({1}, false);
 }
 
 // Overload resolution should handle this when U is a matrix

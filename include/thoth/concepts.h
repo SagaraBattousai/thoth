@@ -11,7 +11,7 @@ concept Addable = requires(T a, U b) {
 
 template <typename U, typename T>
 concept Multiplyable = requires(T a, U b) {
-                         { a* b } -> std::convertible_to<T>;
+                         { a * b } -> std::convertible_to<T>;
                        };
 
 template <typename U, typename T>

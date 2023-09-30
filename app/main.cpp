@@ -21,7 +21,5 @@ int main() {
 
   std::cout << std::endl;
 
-  using rint = int&&;  
-
   return 0;
 }
