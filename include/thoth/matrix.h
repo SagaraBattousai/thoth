@@ -2,6 +2,7 @@
 #define __THOTH_MATRIX_H__
 
 #include <_thoth_config.h>
+
 #include <thoth/concepts.h>
 #include <thoth/utils.h>
 
@@ -77,7 +78,7 @@ class Matrix  // Its a header, it doesn't need to be exported
   template <class InputIt>
   constexpr Matrix(std::initializer_list<size_type> dimensions, InputIt first,
                    InputIt last)
-      : Matrix(std::vector(dimensions), std::vector(first, last)){}
+      : Matrix(std::vector(dimensions), std::vector(first, last)) {}
 
   // Works as long as this is compatable with the pointer (test this)
   constexpr Matrix(Matrix&& other) = default;
@@ -166,7 +167,6 @@ class Matrix  // Its a header, it doesn't need to be exported
   template <Numeric U>
   Matrix& operator*=(const U& scalar);
 
-
   template <CONSTRAINT(Multiplyable<T>) U>
   Matrix& operator*=(const Matrix<U>& rhs);
 
@@ -253,8 +253,8 @@ class Matrix  // Its a header, it doesn't need to be exported
 
   const std::vector<size_type> strides_;
 
-  //How to use const with move operator
-  // Cant be constexpr but all constructors are :(
+  // How to use const with move operator
+  //  Cant be constexpr but all constructors are :(
   const size_type flattened_dims_;  // may be too small but want it to be solid
                                     // on 32 bit machines too
 
@@ -264,18 +264,34 @@ class Matrix  // Its a header, it doesn't need to be exported
 
 #pragma endregion
 };
-/*
-template <>
-class Matrix<bool>
-{
-};
-*/
 
-// template <typename V, CONSTRAINT(Multiplyable<V>) U>
-// Matrix<V> operator*(Matrix<V> matrix, const U& scalar) {
-//   matrix *= scalar;
-//   return matrix;
-// };
+template <>
+class Matrix<bool> {
+ public:
+  using size_type = int;
+
+  constexpr Matrix<bool>(std::initializer_list<size_type> dimensions,
+                         const bool& value) noexcept
+      : dimensions_(dimensions),
+        flattened_dims_(std::reduce(dimensions_.begin(), dimensions_.end(), 1,
+                                    std::multiplies<size_type>())),
+        values_(flattened_dims_, value){}
+
+ private:
+  const std::vector<size_type> dimensions_;
+
+  //const std::vector<size_type> strides_;
+
+  // How to use const with move operator
+  //  Cant be constexpr but all constructors are :(
+  const size_type flattened_dims_;  // may be too small but want it to be solid
+                                    // on 32 bit machines too
+
+  //const std::shared_ptr<std::vector<bool>> values_;
+  const std::vector<bool> values_;
+};
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 //////////////////////// Constructors ///////////////////////////////////////
@@ -292,7 +308,8 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
       values_(std::make_shared<std::vector<T>>(std::move(values))),
       data_start_(values_->data()) {
   std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
-                      const_cast<std::vector<size_type>&>(strides_).rbegin(), 1, std::multiplies<>{});
+                      const_cast<std::vector<size_type>&>(strides_).rbegin(), 1,
+                      std::multiplies<>{});
 }
 
 // Private:  Final constructor in delegation chain requiring no validation
@@ -307,7 +324,8 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
       values_(std::make_shared<std::vector<T>>(flattened_dims_, value)),
       data_start_(values_->data()) {
   std::exclusive_scan(dimensions_.rbegin(), dimensions_.rend(),
-                      const_cast<std::vector<size_type>&>(strides_).rbegin(), 1, std::multiplies<>{});
+                      const_cast<std::vector<size_type>&>(strides_).rbegin(), 1,
+                      std::multiplies<>{});
 }
 
 // Final constructor for view []operator
@@ -342,7 +360,8 @@ constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
     const_cast<std::vector<size_type>&>(this->dimensions_) = other.dimensions_;
     const_cast<std::vector<size_type>&>(this->strides_) = other.strides_;
     const_cast<size_type&>(this->flattened_dims_) = other.flattened_dims_;
-    const_cast<std::shared_ptr<std::vector<T>>&>(this->values_) = std::make_shared<std::vector<T>>(*other.values_);
+    const_cast<std::shared_ptr<std::vector<T>>&>(this->values_) =
+        std::make_shared<std::vector<T>>(*other.values_);
     const_cast<T*&>(this->data_start_) = this->values_->data();
   }
   return *this;
@@ -444,7 +463,7 @@ Matrix<bool> Matrix<T>::operator<=>(const Matrix<U>& rhs) {
   for (dimensions_type::size_type i = 0; i < smaller_dims_size; ++i) {
     equality_vector[i] = (this->values_[i] <=> rhs.values_[i]);
   }
-  //TODO: IMPLEMENT
+  // TODO: IMPLEMENT
   return Matrix<bool>({1}, false);
 }
 
@@ -470,8 +489,8 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs) {
   return *this;
 }
 
-//GCC not happy with this: template <CONSTRAINT(Multiplyable<T>) U> for some
-//reason I cant work out so im gonna try a cheaky cheat for now.
+// GCC not happy with this: template <CONSTRAINT(Multiplyable<T>) U> for some
+// reason I cant work out so im gonna try a cheaky cheat for now.
 template <typename T>
 template <Numeric U>
 Matrix<T>& Matrix<T>::operator*=(const U& scalar) {

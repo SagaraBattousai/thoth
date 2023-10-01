@@ -3,11 +3,13 @@
 
 #include <concepts>
 #include <functional>
+#include <type_traits>
 
 namespace thoth {
 
+  //Cant use std::integral<T> according to clang14
 template <typename T>
-concept Numeric = std::integral<T> || std::floating_point<T>;
+concept Numeric = std::is_integral_v<T> || std::is_floating_point_v<T>;
 
 template <typename U, typename T>
 concept Addable = requires(T a, U b) {
