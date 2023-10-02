@@ -1,6 +1,6 @@
 // #include <cstring>
 #include <gtest/gtest.h>
-#include <thoth/utils.h>
+#include <thoth/utility.h>
 
 #include <stdexcept>
 #include <vector>

@@ -24,8 +24,8 @@ endif()
 FetchContent_MakeAvailable(googletest)
 
 set(testing_sources 
-  "matrix_tests.cpp"
-  "utils_tests.cpp"
+  "ndarray_tests.cpp"
+  "utility_tests.cpp"
   )
 
 add_executable(thoth_tests ${testing_sources})
@@ -35,8 +35,13 @@ set_target_properties(gtest gtest_main gmock gmock_main
   PROPERTIES FOLDER Tests/googleTest)
 
 target_link_libraries(thoth_tests PRIVATE GTest::gtest_main)
+#Find a better way to do this
 target_include_directories(thoth_tests PRIVATE 
-  $<TARGET_PROPERTY:thoth,INCLUDE_DIRECTORIES>)
+  $<TARGET_PROPERTY:concepts,INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:ndarray,INCLUDE_DIRECTORIES>
+  #$<TARGET_PROPERTY:network,INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:utility,INCLUDE_DIRECTORIES>
+  )
 
 if(WIN32)
   # symlink_library_to_target(thoth_tests pulse)

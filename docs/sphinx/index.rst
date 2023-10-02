@@ -3,6 +3,7 @@
 Welcome to Thoth's documentation!
 ==========================================
 **Thoth** is a light weight, SIMD optimised C interop Matrix Library
+Fast SIMD Martix C++ Library with C interop
 
 .. note::
    This project is under active development
@@ -12,7 +13,9 @@ Welcome to Thoth's documentation!
    :caption: Thoth
    :name: sec-thoth
 
-   thoth/matrix
-   thoth/utils
+   thoth/concepts/index
+   thoth/ndarray/index
+   thoth/network/index
+   thoth/utility/index
 
 * :ref:`genindex`

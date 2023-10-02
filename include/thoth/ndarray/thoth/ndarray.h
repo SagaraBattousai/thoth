@@ -1,10 +1,10 @@
-﻿#ifndef __THOTH_MATRIX_H__
-#define __THOTH_MATRIX_H__
+﻿#ifndef __THOTH_NDARRAY_H__
+#define __THOTH_NDARRAY_H__
 
 #include <_thoth_config.h>
 
 #include <thoth/concepts.h>
-#include <thoth/utils.h>
+#include <thoth/utility.h>
 
 #include <memory>
 #include <numeric>
@@ -15,21 +15,21 @@
 
 namespace thoth {
 
-enum class MatrixBroadcastType : char { kEqual, kBroadcast };
+enum class NdArrayBroadcastType : char { kEqual, kBroadcast };
 
 template <typename T>
-class Matrix;
+class NdArray;
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj);
+std::ostream& operator<<(std::ostream& os, const NdArray<T>& obj);
 
-// However, BroadcastType cant be in Matrix therefore called MAtrixBroadcastType
+// However, BroadcastType cant be in NdArray therefore called MAtrixBroadcastType
 template <typename T, typename U>
-MatrixBroadcastType Broadcastable(const Matrix<T>*& lhs, const Matrix<U>*& rhs);
+NdArrayBroadcastType Broadcastable(const NdArray<T>*& lhs, const NdArray<U>*& rhs);
 
 // I hate how messy template classes are :(
 template <typename T>
-class Matrix  // Its a header, it doesn't need to be exported
+class NdArray  // Its a header, it doesn't need to be exported
 {
  public:
   using size_type = int;
@@ -40,18 +40,18 @@ class Matrix  // Its a header, it doesn't need to be exported
   // Final constructor in delegation chain requiring validation
   // Be sure to re read move semantics
   // Does this still need to be explicit?
-  constexpr explicit Matrix(std::vector<size_type>&& dimensions,
+  constexpr explicit NdArray(std::vector<size_type>&& dimensions,
                             std::vector<T>&& values);
 
   // Final constructor in delegation chain requiring no validation and is
   // therefore noexcept
-  constexpr Matrix(std::vector<size_type>&& dimensions,
+  constexpr NdArray(std::vector<size_type>&& dimensions,
                    const T& value) noexcept;
 
   // Final constructor for view []operator
   // can assume validation has already been completed on the constructor
-  // from which this matrix is a view of.
-  constexpr Matrix(std::vector<size_type>&& dimensions,
+  // from which this ndarray is a view of.
+  constexpr NdArray(std::vector<size_type>&& dimensions,
                    const std::vector<size_type>& strides,
                    const std::shared_ptr<std::vector<T>>& values,
                    T* const data_start) noexcept;
@@ -62,43 +62,43 @@ class Matrix  // Its a header, it doesn't need to be exported
 // Public Constructors and constructor like static Members
 #pragma region CONSTRUCTORS
 
-  constexpr Matrix(std::initializer_list<size_type> dimensions,
+  constexpr NdArray(std::initializer_list<size_type> dimensions,
                    const T& value) noexcept
-      : Matrix(std::vector(dimensions), value){};
+      : NdArray(std::vector(dimensions), value){};
 
-  constexpr Matrix(std::initializer_list<size_type> dimensions,
+  constexpr NdArray(std::initializer_list<size_type> dimensions,
                    std::initializer_list<T> values)
-      : Matrix(std::vector(dimensions), std::vector(values)){};
+      : NdArray(std::vector(dimensions), std::vector(values)){};
 
   // I think this is fine vs not providing T to vector
-  constexpr explicit Matrix(
+  constexpr explicit NdArray(
       std::initializer_list<size_type> dimensions) noexcept
-      : Matrix(std::vector(dimensions), T()){};
+      : NdArray(std::vector(dimensions), T()){};
 
   template <class InputIt>
-  constexpr Matrix(std::initializer_list<size_type> dimensions, InputIt first,
+  constexpr NdArray(std::initializer_list<size_type> dimensions, InputIt first,
                    InputIt last)
-      : Matrix(std::vector(dimensions), std::vector(first, last)) {}
+      : NdArray(std::vector(dimensions), std::vector(first, last)) {}
 
   // Works as long as this is compatable with the pointer (test this)
-  constexpr Matrix(Matrix&& other) = default;
+  constexpr NdArray(NdArray&& other) = default;
 
   // Also a final constructor
   //  copy ctor must be manually written as shared_ptr copy is "non" trivial
-  constexpr Matrix(const Matrix& other) noexcept;
+  constexpr NdArray(const NdArray& other) noexcept;
 
-  static constexpr Matrix Zeros(std::initializer_list<size_type> dimensions) {
-    return Matrix(dimensions, (T)0);
+  static constexpr NdArray Zeros(std::initializer_list<size_type> dimensions) {
+    return NdArray(dimensions, (T)0);
   };
 
   template <typename V>
-  static constexpr Matrix ZerosLike(const Matrix<V>& other) {
-    return Matrix(other.Shape(), (T)0);
+  static constexpr NdArray ZerosLike(const NdArray<V>& other) {
+    return NdArray(other.Shape(), (T)0);
   }
 
   template <typename V>
-  static constexpr Matrix Like(const Matrix<V>& other) {
-    return Matrix(other.Shape());
+  static constexpr NdArray Like(const NdArray<V>& other) {
+    return NdArray(other.Shape());
   }
 
 #pragma endregion
@@ -120,12 +120,12 @@ class Matrix  // Its a header, it doesn't need to be exported
 #pragma region OPERATORS
 
   // Implement convertable types and as type laters
-  constexpr Matrix& operator=(const Matrix& other) noexcept;
+  constexpr NdArray& operator=(const NdArray& other) noexcept;
 
-  constexpr Matrix& operator=(Matrix&& other) = default;
+  constexpr NdArray& operator=(NdArray&& other) = default;
 
   template <CONSTRAINT(Comparable<T>) U>
-  Matrix<bool> operator<=>(const Matrix<U>& rhs);
+  NdArray<bool> operator<=>(const NdArray<U>& rhs);
 
   //[] operator for flat access. May not be ideal to expose
   // but relativly safe and allows us to unfriend operator<<
@@ -137,27 +137,27 @@ class Matrix  // Its a header, it doesn't need to be exported
 
   //[] operator for views / view access
   // const as function wont modify this;
-  // however, the returned matrix shares the same values
+  // however, the returned ndarray shares the same values
   // pairs that create the range [get<0>slice, get<1>slice)
-  Matrix operator[](std::initializer_list<slice_type> indicies) const;
+  NdArray operator[](std::initializer_list<slice_type> indicies) const;
 
   // Plus and mult operators
   template <CONSTRAINT(Addable<T>) U>
-  Matrix& operator+=(const U& scalar);
+  NdArray& operator+=(const U& scalar);
 
   template <CONSTRAINT(Addable<T>) U>
-  Matrix& operator+=(const Matrix<U>& rhs);
+  NdArray& operator+=(const NdArray<U>& rhs);
 
   /*
   template <typename V, CONSTRAINT(Addable<V>) U>
-  friend Matrix<V> operator+(Matrix<V> matrix, const U& scalar) {
-    matrix += scalar;
-    return matrix;
+  friend NdArray<V> operator+(NdArray<V> ndarray, const U& scalar) {
+    ndarray += scalar;
+    return ndarray;
   };
   */
 
   template <CONSTRAINT(Addable<T>) U>
-  friend Matrix operator+(Matrix lhs, const Matrix<U>& rhs) {
+  friend NdArray operator+(NdArray lhs, const NdArray<U>& rhs) {
     lhs += rhs;
     return lhs;
   }
@@ -165,22 +165,22 @@ class Matrix  // Its a header, it doesn't need to be exported
   // GCC not happy with this: template <CONSTRAINT(Multiplyable<T>) U> for some
   // reason I cant work out so im gonna try a cheaky cheat for now.
   template <Numeric U>
-  Matrix& operator*=(const U& scalar);
+  NdArray& operator*=(const U& scalar);
 
   template <CONSTRAINT(Multiplyable<T>) U>
-  Matrix& operator*=(const Matrix<U>& rhs);
+  NdArray& operator*=(const NdArray<U>& rhs);
 
-  // For the two below leave at least on matrix type as T (i.e. the one this
+  // For the two below leave at least on ndarray type as T (i.e. the one this
   // class uses else redefinition errors (loop somewhere)
   template <CONSTRAINT(Multiplyable<T>) U>
-  friend Matrix<T> operator*(Matrix<T> matrix, const U& scalar) {
-    matrix *= scalar;
-    return matrix;
+  friend NdArray<T> operator*(NdArray<T> ndarray, const U& scalar) {
+    ndarray *= scalar;
+    return ndarray;
   }
 
   // friend in order to allow definition inside class?!?
   template <CONSTRAINT(Multiplyable<T>) U>
-  friend Matrix<T> operator*(Matrix<T> lhs, const Matrix<U>& rhs) {
+  friend NdArray<T> operator*(NdArray<T> lhs, const NdArray<U>& rhs) {
     lhs *= rhs;
     return lhs;
   }
@@ -193,12 +193,12 @@ class Matrix  // Its a header, it doesn't need to be exported
 
 // Private constructors
 #pragma region PRIVATE_CONSTRUCTORS
-  constexpr Matrix(const std::vector<size_type>& dimensions,
+  constexpr NdArray(const std::vector<size_type>& dimensions,
                    const T& value) noexcept
-      : Matrix(std::vector(dimensions), value){};
+      : NdArray(std::vector(dimensions), value){};
 
-  constexpr explicit Matrix(const std::vector<size_type>& dimensions) noexcept
-      : Matrix(std::vector(dimensions), T()){};
+  constexpr explicit NdArray(const std::vector<size_type>& dimensions) noexcept
+      : NdArray(std::vector(dimensions), T()){};
 
   // One more will need to be added
 
@@ -266,11 +266,11 @@ class Matrix  // Its a header, it doesn't need to be exported
 };
 
 template <>
-class Matrix<bool> {
+class NdArray<bool> {
  public:
   using size_type = int;
 
-  constexpr Matrix<bool>(std::initializer_list<size_type> dimensions,
+  constexpr NdArray<bool>(std::initializer_list<size_type> dimensions,
                          const bool& value) noexcept
       : dimensions_(dimensions),
         flattened_dims_(std::reduce(dimensions_.begin(), dimensions_.end(), 1,
@@ -299,7 +299,7 @@ class Matrix<bool> {
 
 // Private: Final constructor in delegation chain requiring validation
 template <typename T>
-constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
+constexpr NdArray<T>::NdArray(std::vector<size_type>&& dimensions,
                             std::vector<T>&& values)
     : dimensions_(std::move(dimensions)),
       strides_(dimensions_.size()),
@@ -315,7 +315,7 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
 // Private:  Final constructor in delegation chain requiring no validation
 //  and is therefore noexcept
 template <typename T>
-constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
+constexpr NdArray<T>::NdArray(std::vector<size_type>&& dimensions,
                             const T& value) noexcept
     : dimensions_(std::move(dimensions)),
       strides_(dimensions_.size()),
@@ -330,9 +330,9 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
 
 // Final constructor for view []operator
 // can assume validation has already been completed on the constructor
-// from which this matrix is a view of.
+// from which this ndarray is a view of.
 template <typename T>
-constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
+constexpr NdArray<T>::NdArray(std::vector<size_type>&& dimensions,
                             const std::vector<size_type>& strides,
                             const std::shared_ptr<std::vector<T>>& values,
                             T* const data_start) noexcept
@@ -345,7 +345,7 @@ constexpr Matrix<T>::Matrix(std::vector<size_type>&& dimensions,
 
 // No except as other should be already validated. Check this.
 template <typename T>
-constexpr Matrix<T>::Matrix(const Matrix& other) noexcept
+constexpr NdArray<T>::NdArray(const NdArray& other) noexcept
     : dimensions_(other.dimensions_),
       strides_(other.strides_),
       flattened_dims_(other.flattened_dims_),
@@ -354,7 +354,7 @@ constexpr Matrix<T>::Matrix(const Matrix& other) noexcept
 
 // No except as other should be already validated. Check this.
 template <typename T>
-constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
+constexpr NdArray<T>& NdArray<T>::operator=(const NdArray& other) noexcept {
   if (this != &other)  // i.e. not self assignment
   {
     const_cast<std::vector<size_type>&>(this->dimensions_) = other.dimensions_;
@@ -375,29 +375,29 @@ constexpr Matrix<T>& Matrix<T>::operator=(const Matrix& other) noexcept {
 
 //[] operator for element access
 template <typename T>
-T& Matrix<T>::operator[](std::initializer_list<size_type> indicies) {
+T& NdArray<T>::operator[](std::initializer_list<size_type> indicies) {
   if (indicies.size() != this->dimensions_.size()) {
     throw std::invalid_argument(
         "The number of indicies must match the number of dimensions of this "
-        "matrix.");
+        "ndarray.");
   }
   return *(this->data_start_ + this->IndexOffset(indicies));
 }
 
 template <typename T>
-const T& Matrix<T>::operator[](
+const T& NdArray<T>::operator[](
     std::initializer_list<size_type> indicies) const {
   if (indicies.size() != this->dimensions_.size()) {
     throw std::invalid_argument(
         "The number of indicies must match the number of dimensions of this "
-        "matrix.");
+        "ndarray.");
   }
   return *(this->data_start_ + this->IndexOffset(indicies));
 }
 
 //[] operator for views / view access
 template <typename T>
-Matrix<T> Matrix<T>::operator[](
+NdArray<T> NdArray<T>::operator[](
     std::initializer_list<slice_type> indicies) const {
   std::vector<size_type> new_dimensions{this->dimensions_};
   auto index_ptr = indicies.begin();
@@ -419,20 +419,20 @@ Matrix<T> Matrix<T>::operator[](
 
   size_type offset = ZipWithReduce<>(
       indicies.begin(), indicies.end(), strides_.begin(), 0,
-      [](const Matrix<T>::slice_type& a, const size_type& b) {
+      [](const NdArray<T>::slice_type& a, const size_type& b) {
         return (size_type)(a.first * b);
       },
       std::plus<>());
 
   // should last arg be from pointer into new values_ even thought they both
   // point to the same address?
-  return Matrix(std::move(new_dimensions), this->strides_, this->values_,
+  return NdArray(std::move(new_dimensions), this->strides_, this->values_,
                 this->data_start_ + offset);
 }
 
 // Flat access [] operator
 template <typename T>
-const T& Matrix<T>::operator[](size_type index) const {
+const T& NdArray<T>::operator[](size_type index) const {
   // maybe constepr if ???
   if (IsContiguous()) {
     return (*(this->values_))[index];
@@ -443,20 +443,20 @@ const T& Matrix<T>::operator[](size_type index) const {
 
 template <typename T>
 template <CONSTRAINT(Comparable<T>) U>
-Matrix<bool> Matrix<T>::operator<=>(const Matrix<U>& rhs) {
+NdArray<bool> NdArray<T>::operator<=>(const NdArray<U>& rhs) {
   // Order is arbitary as long as the dims are in the same order
-  const dimensions_type* smaller_matrix_dimensions = &(this->dimensions_);
-  const dimensions_type* larger_matrix_dimensions = &(rhs.dimensions_);
+  const dimensions_type* smaller_ndarray_dimensions = &(this->dimensions_);
+  const dimensions_type* larger_ndarray_dimensions = &(rhs.dimensions_);
 
-  Min(smaller_matrix_dimensions, larger_matrix_dimensions,
+  Min(smaller_ndarray_dimensions, larger_ndarray_dimensions,
       this->dimensions_.size(), rhs.dimensions_.size());
 
-  // Now smaller_matrix_dimensions is the smaller of the two;
+  // Now smaller_ndarray_dimensions is the smaller of the two;
 
   dimensions_type::size_type smaller_dims_size =
-      smaller_matrix_dimensions->size();
+      smaller_ndarray_dimensions->size();
   dimensions_type::size_type larger_dims_size =
-      larger_matrix_dimensions->size();
+      larger_ndarray_dimensions->size();
 
   std::vector<bool> equality_vector(larger_dims_size, false);
 
@@ -464,13 +464,13 @@ Matrix<bool> Matrix<T>::operator<=>(const Matrix<U>& rhs) {
     equality_vector[i] = (this->values_[i] <=> rhs.values_[i]);
   }
   // TODO: IMPLEMENT
-  return Matrix<bool>({1}, false);
+  return NdArray<bool>({1}, false);
 }
 
-// Overload resolution should handle this when U is a matrix
+// Overload resolution should handle this when U is a ndarray
 template <typename T>
 template <CONSTRAINT(Addable<T>) U>
-Matrix<T>& Matrix<T>::operator+=(const U& scalar) {
+NdArray<T>& NdArray<T>::operator+=(const U& scalar) {
   // std::for_each is equal in release but I do a lotta debug work so......
   for (typename std::vector<T>::size_type i = 0; i < this->values_->size();
        ++i) {
@@ -481,7 +481,7 @@ Matrix<T>& Matrix<T>::operator+=(const U& scalar) {
 
 template <typename T>
 template <CONSTRAINT(Addable<T>) U>
-Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs) {
+NdArray<T>& NdArray<T>::operator+=(const NdArray<U>& rhs) {
   for (size_type i = 0; i < this->values_->size(); ++i) {
     (*this->values_)[i] += (*rhs.values_)[i];
   }
@@ -493,7 +493,7 @@ Matrix<T>& Matrix<T>::operator+=(const Matrix<U>& rhs) {
 // reason I cant work out so im gonna try a cheaky cheat for now.
 template <typename T>
 template <Numeric U>
-Matrix<T>& Matrix<T>::operator*=(const U& scalar) {
+NdArray<T>& NdArray<T>::operator*=(const U& scalar) {
   // std::for_each is equal in release but I do a lotta debug work so......
   for (size_type i = 0; i < this->values_->size(); ++i) {
     (*this->values_)[i] *= scalar;
@@ -503,17 +503,17 @@ Matrix<T>& Matrix<T>::operator*=(const U& scalar) {
 
 template <typename T>
 template <CONSTRAINT(Multiplyable<T>) U>
-Matrix<T>& Matrix<T>::operator*=(const Matrix<U>& rhs) {
-  const Matrix<T>* matrix_a = this;
-  const Matrix<U>* matrix_b = &rhs;
+NdArray<T>& NdArray<T>::operator*=(const NdArray<U>& rhs) {
+  const NdArray<T>* ndarray_a = this;
+  const NdArray<U>* ndarray_b = &rhs;
 
-  switch (Broadcastable(matrix_a, matrix_b)) {
-    case MatrixBroadcastType::kEqual:
+  switch (Broadcastable(ndarray_a, ndarray_b)) {
+    case NdArrayBroadcastType::kEqual:
       for (dimensions_type::size_type i = 0; i < this->values_->size(); ++i) {
         (*this->values_)[i] *= (*rhs.values_)[i];
       }
       break;
-    case MatrixBroadcastType::kBroadcast:
+    case NdArrayBroadcastType::kBroadcast:
       return *this;
       break;
   }
@@ -521,44 +521,44 @@ Matrix<T>& Matrix<T>::operator*=(const Matrix<U>& rhs) {
 }
 
 template <typename T, typename U>
-MatrixBroadcastType Broadcastable(const Matrix<T>*& lhs,
-                                  const Matrix<U>*& rhs) {
+NdArrayBroadcastType Broadcastable(const NdArray<T>*& lhs,
+                                  const NdArray<U>*& rhs) {
   const auto lhs_dim_size = lhs->Shape().size();
   const auto rhs_dim_size = rhs->Shape().size();
 
   if (lhs_dim_size == rhs_dim_size) {
     if (lhs->Shape() != rhs->Shape()) {
       throw std::domain_error(
-          "For Matricies with equal length dimensions the dimensions must be "
+          "For NdArrays with equal length dimensions the dimensions must be "
           "equal.");
     } else {
-      return MatrixBroadcastType::kEqual;
+      return NdArrayBroadcastType::kEqual;
     }
   } else {
     Min(&lhs, &rhs, lhs_dim_size, rhs_dim_size);
 
-    // lhs is now has the smaller matrix dimensions
+    // lhs is now has the smaller ndarray dimensions
 
-    const auto& smaller_matrix_dimensions = lhs->Shape();
-    const auto& larger_matrix_dimensions = rhs->Shape();
+    const auto& smaller_ndarray_dimensions = lhs->Shape();
+    const auto& larger_ndarray_dimensions = rhs->Shape();
 
     // by value so ...... dont need const?
-    auto smaller_dims_size = smaller_matrix_dimensions.size();
+    auto smaller_dims_size = smaller_ndarray_dimensions.size();
 
     // larger > smaller is garunteed but does auto know this?
-    auto dim_size_diff = larger_matrix_dimensions.size() - smaller_dims_size;
+    auto dim_size_diff = larger_ndarray_dimensions.size() - smaller_dims_size;
 
     // dangerous to iterate backwards as vector's sizetype is unsigned
     for (decltype(smaller_dims_size) i = 0; i < smaller_dims_size; ++i) {
-      if (larger_matrix_dimensions[i + dim_size_diff] !=
-          smaller_matrix_dimensions[i]) {
+      if (larger_ndarray_dimensions[i + dim_size_diff] !=
+          smaller_ndarray_dimensions[i]) {
         throw std::domain_error(
-            "For Matricies with different length dimensions the dimensions of "
-            "the smaller matrix must match the final dimensions of the longer "
-            "matrix.");
+            "For NdArrays with different length dimensions the dimensions of "
+            "the smaller ndarray must match the final dimensions of the longer "
+            "ndarray.");
       }
     }
-    return MatrixBroadcastType::kBroadcast;
+    return NdArrayBroadcastType::kBroadcast;
   }
 }
 
@@ -568,12 +568,12 @@ MatrixBroadcastType Broadcastable(const Matrix<T>*& lhs,
 // For now we'll ignore the brackets (in some cases) as I dont think I'm ready
 // for that yet
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
+std::ostream& operator<<(std::ostream& os, const NdArray<T>& obj) {
   const auto ndims = obj.Shape().size();
 
   if (ndims == 1) {
     os << "[ ";
-    for (typename Matrix<T>::size_type i = 0; i < obj.Size(); ++i) {
+    for (typename NdArray<T>::size_type i = 0; i < obj.Size(); ++i) {
       os << " " << obj[i];
       if (i < obj.Size() - 1) {
         os << ", ";
@@ -584,7 +584,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
   }
   // else
 
-  typename Matrix<T>::size_type index = 0;
+  typename NdArray<T>::size_type index = 0;
   const auto column_mod = obj.Shape()[ndims - 1];
   const auto row_mod = obj.Shape()[ndims - 2] * column_mod;
   const auto block_mod = row_mod * (ndims > 2 ? obj.Shape()[ndims - 3] : 1);

@@ -28,10 +28,13 @@ set(SPHINX_HTML_INDEX_FILE "${SPHINX_OUTPUT_DIRECTORY}/index.html")
 # This is set to be relative to sphinx's conf.py
 set(SPHINX_RELATIVE_DOXYGEN_XML_DIR "../${DOXYGEN_OUTPUT_DIRECTORY}/xml")
 
-set_doxygen_input_files(thoth)
+#Find a better way to do this
+set_doxygen_input_files(concepts ndarray utility)#network)
 configure_doxygen_and_add_command()
 add_custom_target(Doxygen_THOTH ALL DEPENDS ${DOXYGEN_XML_INDEX_FILE})
-add_dependencies(Doxygen_THOTH thoth)
+
+#Find a better way to do this
+add_dependencies(Doxygen_THOTH concepts ndarray utility)#network)
 
 configure_sphinx_and_add_command()
 add_custom_target(Sphinx_THOTH ALL DEPENDS ${SPHINX_HTML_INDEX_FILE})

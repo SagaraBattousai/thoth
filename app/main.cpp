@@ -7,11 +7,11 @@
 #include <iterator>
 #include <type_traits>
 
-#include <thoth/matrix.h>
+#include <thoth/ndarray.h>
 
 int main() {
   
-  std::vector<thoth::Matrix<float>> vec;
+  std::vector<thoth::NdArray<float>> vec;
   std::vector<int> strides(1);
 
 

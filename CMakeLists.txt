@@ -1,12 +1,27 @@
 cmake_minimum_required(VERSION 3.23)
 
 project(thoth
-        VERSION 0.0.1
-        DESCRIPTION ""
-        LANGUAGES C CXX)
+  VERSION 0.0.1
+  DESCRIPTION ""
+  LANGUAGES C CXX)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 20)
+# Leave C++ standard up to the root application, so set it only if this is the
+# current top-level CMake project.
+if(CMAKE_SOURCE_DIR STREQUAL thoth_SOURCE_DIR)
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_C_STANDARD 11)
+  set(CMAKE_C_STANDARD_REQUIRED ON)
+else()
+  if(CMAKE_CXX_STANDARD LESS 20)
+    message(FATAL_ERROR
+      "thoth requires CMAKE_CXX_STANDARD >= 20 (got: ${CMAKE_CXX_STANDARD})")
+  endif()
+  if(CMAKE_C_STANDARD LESS 11)
+    message(FATAL_ERROR
+      "thoth requires CMAKE_C_STANDARD >= 11 (got: ${CMAKE_C_STANDARD})")
+  endif()
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -28,15 +43,14 @@ if (MSVC)
   add_compile_options(/permissive /WX /W4)
   set(VS_STARTUP_PROJECT "app_cpp_thoth")
 else()
-    add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unknown-pragmas)
+  add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unknown-pragmas)
 endif()
 
-set(THOTH_BUILD_DOCS ON CACHE BOOL "Whether or not to build documentation.")
-set(THOTH_BUILD_TESTS ON CACHE BOOL "Whether or not to build tests.")
+set(THOTH_BUILD_DOCS OFF CACHE BOOL "Whether or not to build documentation.")
+set(THOTH_BUILD_TESTS OFF CACHE BOOL "Whether or not to build tests.")
 
 set(MODULE_ROOT "${PROJECT_SOURCE_DIR}/include")
 
-# add_subdirectory(<SOURCE_DIR>)
 add_subdirectory(thoth)
 add_subdirectory(app)
 

@@ -3,6 +3,6 @@
 matrix
 ===============
 
-.. doxygenfile:: matrix.h
+.. doxygenfile:: ndarray.h
 
 ..   <subproject>/index
