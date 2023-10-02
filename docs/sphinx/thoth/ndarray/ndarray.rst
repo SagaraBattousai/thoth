@@ -1,6 +1,6 @@
 .. Project Comment
 
-matrix
+ndarray
 ===============
 
 .. doxygenfile:: ndarray.h

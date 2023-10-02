@@ -34,7 +34,7 @@ configure_doxygen_and_add_command()
 add_custom_target(Doxygen_THOTH ALL DEPENDS ${DOXYGEN_XML_INDEX_FILE})
 
 #Find a better way to do this
-add_dependencies(Doxygen_THOTH concepts ndarray utility)#network)
+add_dependencies(Doxygen_THOTH concepts crypto ndarray network numeric utility)
 
 configure_sphinx_and_add_command()
 add_custom_target(Sphinx_THOTH ALL DEPENDS ${SPHINX_HTML_INDEX_FILE})

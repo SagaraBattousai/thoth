@@ -18,7 +18,6 @@ target_sources(ndarray PUBLIC
   FILES ${ndarray_module}
   )
 
-
 target_sources(ndarray PUBLIC
   FILE_SET config_headers
   TYPE HEADERS

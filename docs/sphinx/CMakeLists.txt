@@ -40,13 +40,17 @@ macro(configure_sphinx_and_add_command)
   set(SPHINX_DOXYGEN_XML_DIR 
     "${CMAKE_CURRENT_SOURCE_DIR}/${DOXYGEN_OUTPUT_DIRECTORY}/xml")
 
+  #TODO: Improve this as is hould add sub file too and its a waste
   set(SPHINX_RESTRUCTRED_TEXT 
     #Root Index
     "${SPHINX_ROOT_DIRECTORY}/index.rst"
 
-    "${SPHINX_ROOT_DIRECTORY}/thoth/matrix.rst"
-    "${SPHINX_ROOT_DIRECTORY}/thoth/utils.rst"
-    
+    "${SPHINX_ROOT_DIRECTORY}/thoth/concepts/index.rst"
+    "${SPHINX_ROOT_DIRECTORY}/thoth/crypto/index.rst"
+    "${SPHINX_ROOT_DIRECTORY}/thoth/ndarray/index.rst"
+    "${SPHINX_ROOT_DIRECTORY}/thoth/network/index.rst"
+    "${SPHINX_ROOT_DIRECTORY}/thoth/numeric/index.rst"
+    "${SPHINX_ROOT_DIRECTORY}/thoth/utility/index.rst"
     )
 
   add_custom_command(OUTPUT ${SPHINX_HTML_INDEX_FILE}

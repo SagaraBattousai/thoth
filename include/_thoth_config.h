@@ -38,8 +38,10 @@
 #if defined(_WIN32) || defined(__CYGWIN__)
 #ifdef THOTH_BUILD_DLL
 #define THOTH_EXPORT __declspec(dllexport)
+//#define THOTH_EXPORT_TEMPLATE // Will this cause issues in other dll's?
 #else
 #define THOTH_EXPORT __declspec(dllimport) 
+//#define THOTH_EXPORT_TEMPLATE extern //Will this cause issues in other dll's?
 #endif
 #define THOTH_LOCAL
 #else
@@ -52,9 +54,11 @@
 
 #define THOTH_EXPORT __attribute__ ((visibility ("default")))
 #define THOTH_LOCAL  __attribute__ ((visibility ("hidden")))
+//#define THOTH_EXPORT_TEMPLATE  // Will this cause issues in other dll's?
 #else
 #define THOTH_EXPORT
 #define THOTH_LOCAL
+//#define THOTH_EXPORT_TEMPLATE  // Will this cause issues in other dll's?
 #endif
 #endif
 
