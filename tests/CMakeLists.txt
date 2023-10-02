@@ -1,7 +1,7 @@
 
 include(FetchContent)
 
-set(googletest_commit_hash "f8d7d77c06936315286eb55f8de22cd23c188571")
+set(googletest_commit_hash "e47544ad31cb3ceecd04cc13e8fe556f8df9fe0b")
 
 if (WIN32)
 set(googletest_commit_hash_and_ext "${googletest_commit_hash}.zip")
