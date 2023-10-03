@@ -1,15 +1,16 @@
 
 set(NDARRAY_MODULE_ROOT "${MODULE_ROOT}/thoth/ndarray")
 
-set(cpp_sources "matrix_SIMD.cpp")
+set(cpp_sources "ndarray_simd.cpp")
 set(c_sources "")
 set(ndarray_module
   "${NDARRAY_MODULE_ROOT}/thoth/ndarray.h"
+  #"${NDARRAY_MODULE_ROOT}/thoth/ndarray_simd.h"
   )
 
-add_library(ndarray SHARED ${cpp_sources} ${c_sources})
+add_library(ndarray INTERFACE) #SHARED ${cpp_sources} ${c_sources})
 
-target_compile_definitions(ndarray PRIVATE THOTH_BUILD_DLL)
+# target_compile_definitions(ndarray PRIVATE THOTH_BUILD_DLL)
 
 target_sources(ndarray PUBLIC
   FILE_SET HEADERS
@@ -26,4 +27,4 @@ target_sources(ndarray PUBLIC
   )
 
 #TODO: Check how private works with install
-target_link_libraries(ndarray PUBLIC concepts utility)
+target_link_libraries(ndarray INTERFACE concepts utility)

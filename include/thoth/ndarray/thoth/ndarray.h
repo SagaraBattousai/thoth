@@ -29,7 +29,7 @@ NdArrayBroadcastType Broadcastable(const NdArray<T>*& lhs, const NdArray<U>*& rh
 
 // I hate how messy template classes are :(
 template <typename T>
-class NdArray  // Its a header, it doesn't need to be exported
+class NdArray  // Its a header, it doesn't need to be exported //but without .lib wont be generated
 {
  public:
   using size_type = int;
