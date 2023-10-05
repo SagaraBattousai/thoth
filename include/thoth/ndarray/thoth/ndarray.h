@@ -482,7 +482,7 @@ NdArray<T>& NdArray<T>::operator+=(const U& scalar) {
 template <typename T>
 template <CONSTRAINT(Addable<T>) U>
 NdArray<T>& NdArray<T>::operator+=(const NdArray<U>& rhs) {
-  for (size_type i = 0; i < this->values_->size(); ++i) {
+  for (size_type i = 0; i < (size_type)this->values_->size(); ++i) {
     (*this->values_)[i] += (*rhs.values_)[i];
   }
 
@@ -495,7 +495,7 @@ template <typename T>
 template <Numeric U>
 NdArray<T>& NdArray<T>::operator*=(const U& scalar) {
   // std::for_each is equal in release but I do a lotta debug work so......
-  for (size_type i = 0; i < this->values_->size(); ++i) {
+  for (size_type i = 0; i < (size_type)this->values_->size(); ++i) {
     (*this->values_)[i] *= scalar;
   }
   return *this;

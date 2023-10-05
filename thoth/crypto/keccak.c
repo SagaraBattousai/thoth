@@ -34,8 +34,8 @@ Actual Code
 
 
 static const int endianTest = 0xABCDEF37;
-static const int littleEndianValue = 0x37;
-static const int bigEndianValue = 0xAB;
+static const char littleEndianValue = 0x37;
+//static const int bigEndianValue = 0xAB;
 
 
 #define system_is_little_endian \

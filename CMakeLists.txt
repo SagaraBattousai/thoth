@@ -44,7 +44,7 @@ if (MSVC)
   add_compile_options(/permissive /WX /W4 /wd4251 /wd4100)
   set(VS_STARTUP_PROJECT "app_cpp_thoth")
 else()
-  add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unknown-pragmas)
+  add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unknown-pragmas -Wno-unused-private-field) # -Wno-unused-parameter)
 endif()
 
 set(THOTH_BUILD_DOCS OFF CACHE BOOL "Whether or not to build documentation.")
