@@ -12,9 +12,9 @@ set(c_sources
   )
 
 set(thoth_module 
-  "${CRYPTO_MODULE_ROOT}/thoth/hash.h"
-  "${CRYPTO_MODULE_ROOT}/thoth/keccak.h"
-  "${CRYPTO_MODULE_ROOT}/thoth/signing.h"
+  "${CRYPTO_MODULE_ROOT}/hash.h"
+  "${CRYPTO_MODULE_ROOT}/keccak.h"
+  "${CRYPTO_MODULE_ROOT}/signing.h"
   )
 
 add_library(crypto SHARED ${cpp_sources} ${c_sources})
@@ -24,15 +24,9 @@ target_compile_definitions(crypto PRIVATE THOTH_BUILD_DLL)
 target_sources(crypto PUBLIC
   FILE_SET HEADERS
   TYPE HEADERS
-  BASE_DIRS ${CRYPTO_MODULE_ROOT}
-  FILES ${crypto_module}
-  )
-
-target_sources(crypto PUBLIC
-  FILE_SET config_headers
-  TYPE HEADERS
   BASE_DIRS ${MODULE_ROOT}
-  FILES "${MODULE_ROOT}/_thoth_config.h"
+  FILES ${crypto_module} 
+  "${MODULE_ROOT}/_thoth_config.h"
   )
 
 #TODO: Check how private works with install

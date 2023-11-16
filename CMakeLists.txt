@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 
 project(thoth
-  VERSION 0.0.1
+  VERSION 0.0.2
   DESCRIPTION ""
   LANGUAGES C CXX)
 
@@ -34,9 +34,6 @@ include(SystemCheck)
 include(LibUtils)
 
 set_system_check_vars()
-
-# set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-# ^^ No longer used as config with export and local is used instead
 
 if (MSVC)
   #Wall removed as msvc has some errors that trigger this

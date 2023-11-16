@@ -45,6 +45,14 @@ concept binary_operator =
 //                                   { *it } -> std::convertible_to<T>;
 //                                 };
 
+
+template <typename T>
+concept enum_flag = std::is_enum_v<T> && requires (std::underlying_type_t<T> enum_val){
+      { enum_val | enum_val } -> std::convertible_to<std::underlying_type_t<T>>;
+      { enum_val & enum_val } -> std::convertible_to<std::underlying_type_t<T>>;
+      static_cast<T>(enum_val);
+    };
+
 }  // namespace thoth
 
 #endif
