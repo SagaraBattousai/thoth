@@ -2,13 +2,20 @@
 set(GENETIC_MODULE_ROOT "${MODULE_ROOT}/thoth/ml/genetic")
 
 set(cpp_sources
-  "gene.cpp"
+  "ptr_gene_base.cpp"
+  "crossover.cpp"
+  "mutation.cpp"
   )
 
 set(c_sources "")
 
 set(genetic_module 
   "${GENETIC_MODULE_ROOT}/gene.h"
+  "${GENETIC_MODULE_ROOT}/ptr_gene_base.h"
+  "${GENETIC_MODULE_ROOT}/ptr_gene.h"
+  "${GENETIC_MODULE_ROOT}/vector_gene.h"
+  "${GENETIC_MODULE_ROOT}/crossover.h"
+  "${GENETIC_MODULE_ROOT}/mutation.h"
   )
 
 add_library(genetic SHARED ${cpp_sources} ${c_sources})

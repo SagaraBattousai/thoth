@@ -7,20 +7,26 @@
 #include <iterator>
 #include <type_traits>
 
-#include <thoth/ndarray.h>
+template <class T>
+class X {
+ public:
+  std::size_t size();
+
+};
+
+template <typename T>
+std::size_t X<T>::size() {
+  return sizeof(T);
+}
+
+
+
 
 int main() {
   
-  std::vector<thoth::NdArray<float>> vec;
-  std::vector<int> strides(1);
+  auto x = X<float>();
 
-
-  for (auto i = static_cast<std::make_signed_t<std::vector<int>::size_type>>(strides.size() - 1); i >= 0; --i)
-  {
-    std::cout << vec[i] << ", " << strides[i] << " : ";
-  }
-
-  std::cout << std::endl;
+  std::cout << x.size() <<  std::endl;
 
   return 0;
 }
