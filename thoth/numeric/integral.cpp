@@ -1,4 +1,4 @@
-#include <thoth/integral.h>
+#include <thoth/numeric/integral.h>
 
 namespace
 {

@@ -1,6 +1,8 @@
+
 #ifndef __THOTH_ML_GENETIC_PTR_GENE_H__
 #define __THOTH_ML_GENETIC_PTR_GENE_H__
 /**@file */
+/*
 
 #include <_thoth_config.h>
 
@@ -19,13 +21,14 @@ class THOTH_EXPORT PtrGene {
   virtual gene_t mutate() const = 0;
 
   // TODO: Should this be friends as they x.f(y) == y.f(x)
-  /**Can be single crossover, dual crossover, uniform crossover etc. up to the
-   * implementor */
+  //Can be single crossover, dual crossover, uniform crossover etc. up to the
+  // implementor
+    
   virtual std::pair<gene_t, gene_t> crossover(gene_t other) = 0;
 };
 }  // namespace ml
 }  // namespace thoth
 
 #endif
-
+*/
 #endif

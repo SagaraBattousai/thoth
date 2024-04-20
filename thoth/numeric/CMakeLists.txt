@@ -3,6 +3,7 @@ set(NUMERIC_MODULE_ROOT "${MODULE_ROOT}/thoth/numeric")
 
 
 set(cpp_sources 
+  "bitstring.cpp"
   # "bigint.cpp"
   "integral.cpp"
   # "core_integral.cpp"
@@ -11,6 +12,7 @@ set(cpp_sources
 set(c_sources "")
 
 set(numeric_module 
+  "${NUMERIC_MODULE_ROOT}/bitstring.h"
   "${NUMERIC_MODULE_ROOT}/integral.h"
   #"${NUMERIC_MODULE_ROOT}/core-integral.h"
   )

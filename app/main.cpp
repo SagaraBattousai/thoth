@@ -1,32 +1,12 @@
 
-#include <memory>
-#include <vector>
-#include <initializer_list>
-#include <numeric>
 #include <iostream>
-#include <iterator>
-#include <type_traits>
-
-template <class T>
-class X {
- public:
-  std::size_t size();
-
-};
-
-template <typename T>
-std::size_t X<T>::size() {
-  return sizeof(T);
-}
-
-
-
+#include <thoth/numeric/bitstring.h>
 
 int main() {
   
-  auto x = X<float>();
+  thoth::numeric::BitString bs((unsigned char)0x37);
 
-  std::cout << x.size() <<  std::endl;
+
 
   return 0;
 }

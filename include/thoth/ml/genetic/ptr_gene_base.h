@@ -2,6 +2,7 @@
 #define __THOTH_ML_GENETIC_PTR_GENE_BASE_H__
 /**@file */
 
+/*
 #include <_thoth_config.h>
 
 #ifdef __cplusplus
@@ -52,4 +53,5 @@ class THOTH_EXPORT PtrGeneBase {
 
 #endif
 
+*/
 #endif

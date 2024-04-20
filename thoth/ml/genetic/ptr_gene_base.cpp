@@ -1,4 +1,4 @@
-
+/*
 #include <thoth/ml/genetic/ptr_gene_base.h>
 
 namespace thoth {
@@ -24,3 +24,4 @@ void PtrGeneBase::Crossover(const void* other, void* dst) const {
 
 }  // namespace ml
 }  // namespace thoth
+*/

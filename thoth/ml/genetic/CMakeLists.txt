@@ -20,6 +20,9 @@ set(genetic_module
 
 add_library(genetic SHARED ${cpp_sources} ${c_sources})
 
+# Could be private but I think the clients should have access to bitstring class too
+target_link_libraries(genetic PUBLIC numeric) 
+
 target_sources(genetic PUBLIC
   FILE_SET HEADERS
   TYPE HEADERS
