@@ -17,10 +17,15 @@ target_sources(ndarray PUBLIC
   TYPE HEADERS
   BASE_DIRS ${MODULE_ROOT}
   FILES ${ndarray_module}
-  "${MODULE_ROOT}/_thoth_config.h"
+  "${MODULE_ROOT}/_thoth_config.h" # even this isnt right?
   )
 
-#TODO: Check how private works with install
-#TODO: Now that concepts and utility are one and 
-#the same lets see how that plays out
+# TODO: Check how all this works as msvc is claiming it can't
+# see project includes
+
 target_link_libraries(ndarray INTERFACE concepts utility)
+
+target_compile_features(ndarray INTERFACE cxx_std_20)
+
+get_target_property(ph ndarray PUBLIC_HEADER)
+message(STATUS "ph = ${ph}")

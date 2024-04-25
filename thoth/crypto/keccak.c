@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include <thoth/keccak.h>
+#include <thoth/crypto/keccak.h>
 
 static void keccak(uint32_t rate, uint32_t capacity, const uint8_t *input,
 	int byteCount, uint8_t delimitedSuffix, uint8_t *output, int outputByteCount);

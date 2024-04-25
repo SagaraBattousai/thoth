@@ -1,5 +1,5 @@
 
-#include <thoth/network.h>
+#include <thoth/network/network.h>
 
 namespace thoth
 {

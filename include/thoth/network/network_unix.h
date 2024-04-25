@@ -5,7 +5,7 @@
 #include <memory>
 #include <iostream>
 
-#include <thoth/network.h>
+#include <thoth/network/network.h>
 
 namespace thoth {
 

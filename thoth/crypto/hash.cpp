@@ -1,5 +1,5 @@
 
-#include <thoth/hash.h>
+#include <thoth/crypto/hash.h>
 
 namespace thoth
 {

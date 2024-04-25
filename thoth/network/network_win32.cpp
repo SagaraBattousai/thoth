@@ -1,5 +1,5 @@
 
-#include <thoth/network_win32.h>
+#include <thoth/network/network_win32.h>
 
 namespace thoth
 {

@@ -1,6 +1,5 @@
 
 set(utility_module
-  "${MODULE_ROOT}/thoth/concepts.h"
   "${MODULE_ROOT}/thoth/enum_flag.h"
   "${MODULE_ROOT}/thoth/utility.h"
   )
@@ -14,5 +13,6 @@ target_sources(utility PUBLIC
   FILES ${utility_module}
   )
 
+target_link_libraries(utility INTERFACE concepts)
 target_compile_features(utility INTERFACE cxx_std_20)
 

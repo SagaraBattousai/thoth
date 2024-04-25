@@ -55,9 +55,6 @@ set(THOTH_BUILD_TESTS
 
 
 
-
-
-
 set(MODULE_ROOT "${PROJECT_SOURCE_DIR}/include")
 
 add_subdirectory(thoth)

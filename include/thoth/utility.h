@@ -6,6 +6,7 @@
 #include <concepts>
 #include <functional>
 #include <iterator>
+#include <iostream>
 
 namespace thoth {
 
@@ -24,14 +25,22 @@ namespace thoth {
  *
  ******************************************************************************/
 // inline void Min(const T *&ptr_a, const T*& ptr_b, const U& metric_a,
-// const U& metric_b)
+// const U& metric_b) 
+// 
+// Okay so first, I can now see why promoting T** to const T** is evil 
+// and therefore prohibited (since if ptr_a was a non-const pointer but
+// ptr_b was to a const and they got swapped ..... :O therefore enforce
+// const!
+//
+// Possibly make an overload that calls a function to make the metric
+//
 template <typename T, typename U>
-inline void Min(const T** ptr_a, const T** ptr_b, const U& metric_a,
+inline void Min(const T*& ptr_a, const T*& ptr_b, const U& metric_a,
                 const U& metric_b) {
   if (metric_b < metric_a) {
-    const T* tmp = *ptr_a;
-    *ptr_a = *ptr_b;
-    *ptr_b = tmp;
+    const T* tmp = ptr_a;
+    ptr_a = ptr_b;
+    ptr_b = tmp;
   }
 }
 

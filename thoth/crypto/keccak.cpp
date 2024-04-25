@@ -1,7 +1,7 @@
 
 //#include <vector>
 
-#include <thoth/keccak.h>
+#include <thoth/crypto/keccak.h>
 
 namespace thoth
 {

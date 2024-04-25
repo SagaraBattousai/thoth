@@ -6,7 +6,7 @@
 #ifdef __cplusplus
 #include <cstdint>
 
-#include <thoth/hash.h>
+#include <thoth/crypto/hash.h>
 
 namespace thoth
 {

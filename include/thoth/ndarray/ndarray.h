@@ -1,10 +1,14 @@
 ﻿#ifndef __THOTH_NDARRAY_H__
 #define __THOTH_NDARRAY_H__
 
+//TODO: Work out how to get <> to not show an error with intelisense
+// Darn CMake INTERFACE Libraries (and MSVC)
 #include <_thoth_config.h>
-
+//#include "../../_thoth_config.h"
 #include <thoth/concepts.h>
+//#include "../concepts.h"
 #include <thoth/utility.h>
+//#include "../utility.h"
 
 #include <memory>
 #include <numeric>
@@ -124,8 +128,9 @@ class NdArray  // Its a header, it doesn't need to be exported //but without .li
 
   constexpr NdArray& operator=(NdArray&& other) = default;
 
-  template <CONSTRAINT(Comparable<T>) U>
-  NdArray<bool> operator<=>(const NdArray<U>& rhs);
+  //template <CONSTRAINT(Comparable<T>) U>
+  template <typename U>
+  NdArray<bool> operator<=>(const NdArray<U>& rhs) const;
 
   //[] operator for flat access. May not be ideal to expose
   // but relativly safe and allows us to unfriend operator<<
@@ -188,7 +193,7 @@ class NdArray  // Its a header, it doesn't need to be exported //but without .li
 #pragma endregion
 
  private:
-  // Just to save typeing hence private
+  // Just to save typing hence private
   using dimensions_type = std::vector<size_type>;
 
 // Private constructors
@@ -442,8 +447,9 @@ const T& NdArray<T>::operator[](size_type index) const {
 }
 
 template <typename T>
-template <CONSTRAINT(Comparable<T>) U>
-NdArray<bool> NdArray<T>::operator<=>(const NdArray<U>& rhs) {
+//template <CONSTRAINT(Comparable<T>) U>
+template <typename U>
+NdArray<bool> NdArray<T>::operator<=>(const NdArray<U>& rhs) const {
   // Order is arbitary as long as the dims are in the same order
   const dimensions_type* smaller_ndarray_dimensions = &(this->dimensions_);
   const dimensions_type* larger_ndarray_dimensions = &(rhs.dimensions_);
@@ -535,7 +541,9 @@ NdArrayBroadcastType Broadcastable(const NdArray<T>*& lhs,
       return NdArrayBroadcastType::kEqual;
     }
   } else {
-    Min(&lhs, &rhs, lhs_dim_size, rhs_dim_size);
+    //TODO: Check this change
+    //Min(&lhs, &rhs, lhs_dim_size, rhs_dim_size);
+    Min(lhs, rhs, lhs_dim_size, rhs_dim_size);
 
     // lhs is now has the smaller ndarray dimensions
 
