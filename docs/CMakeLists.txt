@@ -6,7 +6,7 @@ set(DOCS_OUTPUT_DIR "build")
 set(DOXYFILE_ROOT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/doxygen")
 set(SPHINX_ROOT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/sphinx")
 
-add_subdirectory(${DOXYFILE_ROOT_DIRECTORY})
+# add_subdirectory(${DOXYFILE_ROOT_DIRECTORY})
 add_subdirectory(${SPHINX_ROOT_DIRECTORY})
 
 set(DOXYFILE_IN "${DOXYFILE_ROOT_DIRECTORY}/Doxyfile.in")
@@ -29,12 +29,18 @@ set(SPHINX_HTML_INDEX_FILE "${SPHINX_OUTPUT_DIRECTORY}/index.html")
 set(SPHINX_RELATIVE_DOXYGEN_XML_DIR "../${DOXYGEN_OUTPUT_DIRECTORY}/xml")
 
 #Find a better way to do this
-set_doxygen_input_files(concepts ndarray utility)#network)
-configure_doxygen_and_add_command()
-add_custom_target(Doxygen_THOTH ALL DEPENDS ${DOXYGEN_XML_INDEX_FILE})
+#set_doxygen_input_files(concepts ndarray utility)#network)
+#configure_doxygen_and_add_command()
+#add_custom_target(Doxygen_THOTH ALL DEPENDS ${DOXYGEN_XML_INDEX_FILE})
 
-#Find a better way to do this
-add_dependencies(Doxygen_THOTH concepts crypto ndarray network numeric utility)
+##Find a better way to do this
+#add_dependencies(Doxygen_THOTH concepts crypto ndarray network numeric utility)
+add_doxygen_docs(Doxygen_THOTH 
+  DOXYGEN_OUTPUT_DIRECTORY "build"
+  DOXYFILE_IN ${DOXYFILE_IN}
+  DOXYFILE_OUT ${DOXYFILE_OUT}
+  DOXYGEN_GENERATE_XML DOXYGEN_GENERATE_MAN DOXYGEN_JAVADOC_BANNER
+  TARGETS concepts crypto ndarray network numeric utility)
 
 configure_sphinx_and_add_command()
 add_custom_target(Sphinx_THOTH ALL DEPENDS ${SPHINX_HTML_INDEX_FILE})

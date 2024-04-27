@@ -26,6 +26,3 @@ target_sources(ndarray PUBLIC
 target_link_libraries(ndarray INTERFACE concepts utility)
 
 target_compile_features(ndarray INTERFACE cxx_std_20)
-
-get_target_property(ph ndarray PUBLIC_HEADER)
-message(STATUS "ph = ${ph}")

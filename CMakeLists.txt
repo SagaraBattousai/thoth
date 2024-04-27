@@ -33,8 +33,9 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(SystemCheck)
 include(LibUtils)
 include(PropertyUtils)
+include(DocsUtils)
 
-set_system_check_vars()
+set_system_arch_vars()
 
 
 if(MSVC)
