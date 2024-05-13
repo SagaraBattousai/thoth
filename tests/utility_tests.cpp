@@ -12,7 +12,7 @@ TEST(Min, MinSwaps) {
   const int *a = &x;
   const int *b = &y;
 
-  thoth::Min<>(&a, &b, x, y);
+  thoth::Min<>(a, b, x, y);
   EXPECT_EQ(*a, y);
   EXPECT_EQ(*b, x);
 }

@@ -1,7 +1,7 @@
 //#include <cstring>
 #include <gtest/gtest.h>
 
-#include <thoth/ndarray.h>
+#include <thoth/ndarray/ndarray.h>
 #include <stdexcept>
 #include <initializer_list>
 

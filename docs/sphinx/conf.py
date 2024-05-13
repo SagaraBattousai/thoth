@@ -49,15 +49,15 @@ extensions = [ "breathe"
 # breathe_projects = { project : "../build/xml/" }
 # breathe_default_project = project
 
-breathe_projects = { "thoth" : "../build/xml" }
+breathe_projects = { "thoth" : "../docs_build/xml" }
 breathe_default_project = "thoth"
 breathe_show_include = True
 #breathe_default_members = ('members', 'undoc-members')
 
 breathe_domain_by_extension = {
     "h"   : "cpp",
-     "ixx" : "cpp",
-     
+      "ixx" : "cpp",
+      
     }
 
 breathe_domain_by_file_pattern = {
@@ -96,13 +96,7 @@ html_static_path = ['_static']
 
 #Relative to html_static_path
 html_css_files = [
-    
-  "css/style.css",
-  "css/colours.css",
-  "css/defaults.css",
-  "css/dark.css",
-  "css/light.css",
-  
+    "css/style.css","css/colours.css","css/defaults.css","css/dark.css","css/light.css",
 ]
 
 #if not on_rtd:
