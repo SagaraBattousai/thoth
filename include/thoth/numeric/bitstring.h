@@ -14,20 +14,23 @@ namespace thoth {
 namespace numeric {
 
 /**
- * @brief Abstract base class of all BitStrings
+ * @brief Abstract base class of all BitStrings.
+ * Decide on Endianness!
  */
 class THOTH_EXPORT BitString {
  protected:
   // protected alias'
+
+  // Is this forcing us to use vector? should this change? What about Iters?
+  //  How do we say any iter that returns std::byte
   using bits_t = std::vector<std::byte>;
   static constexpr std::byte kOne = std::byte{0x01};
+  static constexpr std::byte kZero = std::byte{0x00};
 
  public:
-  virtual ~BitString() = default;// = 0;
+  virtual ~BitString() = default;
 
-  std::byte operator[](bits_t::size_type idx) const {
-    return GetBit(idx);
-  }
+  std::byte operator[](bits_t::size_type idx) const { return GetBit(idx); }
 
   // only for writing ?
   std::byte& operator[](bits_t::size_type idx) { return GetBit(idx); }
@@ -45,15 +48,15 @@ class THOTH_EXPORT BitString {
   }
 
   BitString& operator|=(const BitString& rhs) noexcept {
-    return ApplyBitwiseArithmetic(rhs, std::bit_or<std::byte>{});
+    return ApplyBitwiseArithmetic(rhs, std::bit_or<const std::byte>{});
   }
 
   BitString& operator&=(const BitString& rhs) noexcept {
-    return ApplyBitwiseArithmetic(rhs, std::bit_and<std::byte>{});
+    return ApplyBitwiseArithmetic(rhs, std::bit_and<const std::byte>{});
   }
 
   BitString& operator^=(const BitString& rhs) noexcept {
-    return ApplyBitwiseArithmetic(rhs, std::bit_xor<std::byte>{});
+    return ApplyBitwiseArithmetic(rhs, std::bit_xor<const std::byte>{});
   }
 
   // Needs to be a friend but also good to hide from non-ADL lookup
@@ -69,12 +72,12 @@ class THOTH_EXPORT BitString {
   //
   // Or can we! Templates !?! Are templates already hidden from non-ADL lookup?
 
-  //Could we pass by value??
+  // Could we pass by value??
   template <typename T>
     requires std::derived_from<T, BitString>
   friend T operator|(const T& lhs, const T& rhs) noexcept {
     return T(lhs) |= rhs;
-      //lhs.DoBinaryBitwise(rhs, std::bit_or<std::byte>{})
+    // lhs.DoBinaryBitwise(rhs, std::bit_or<std::byte>{})
   }
 
   template <typename T>
@@ -89,20 +92,20 @@ class THOTH_EXPORT BitString {
     return T(lhs) ^= rhs;
   }
 
-   template <typename T>
+  template <typename T>
     requires std::derived_from<T, BitString>
-   T operator~() const noexcept {
-     //Check that this == derived
+  T operator~() const noexcept {
+    // Check that this == derived
     /*T inv(*this);
     inv.Invert();
     return inv;*/
-     return T(*this).Invert();
+    return T(*this).Invert();
   }
 
   template <typename T, std::integral IntegerType>
     requires std::derived_from<T, BitString>
-  friend THOTH_EXPORT constexpr T operator<<(
-      const T& lhs, IntegerType shift) noexcept {
+  friend THOTH_EXPORT constexpr T operator<<(const T& lhs,
+                                             IntegerType shift) noexcept {
     /*lhs <<= shift;
     return lhs;*/
     return T(lhs) <<= shift;
@@ -116,13 +119,61 @@ class THOTH_EXPORT BitString {
     return lhs;*/
     return T(lhs) >>= shift;
   }
+  
+ protected:
+  // BitString(const BitString&) = default;
 
-  protected:
-  //BitString(const BitString&) = default;
+  // For now: This will be a Forward Iter as this is all we need even though
+  // Anyone using Array, vector etc will have a contiguous iterator for free.
+  // Actually now this is protected its safe to leave as Forward but maybe
+  // BitIter will require a change?
+  // This may allow us to lift more code into here
+  //
+  // Different attempt now!
 
+  // template <typename It>
+  // class BitStringByteIter {
+  // public:
+  //  using difference_type = std::ptrdiff_t;
+  //  using value_type = std::byte;
+  //  using iterator_concept = std::forward_iterator_tag;
+
+  //  value_type operator*() const { return Deref(); };
+  //  It& operator++() { return PrefixInc(); }
+
+  //  It operator++(int) {
+  //    //auto tmp = *this;
+  //    ++*this;
+  //    //return tmp;
+  //  }
+
+  //  bool operator==(const BitStringByteIter& rhs) const {
+  //    return DoEquality(rhs);
+  //  }
+
+  // private:
+  //  virtual value_type Deref() const = 0;
+  //  virtual It& PrefixInc() = 0;
+  //  virtual bool DoEquality(const BitStringByteIter& rhs) const = 0;
+  //};
+
+  // Final attempt //Maybe make more c++y later
+  class THOTH_EXPORT ByteIter {
+   public:
+    bool HasNext() const { return DoHasNext(); }
+    std::byte& operator*() const { return Deref(); };
+    void Next() { DoNext(); };
+
+   private:
+    virtual bool DoHasNext() const = 0;
+    virtual std::byte& Deref() const = 0;
+    virtual void DoNext() = 0;
+  };
+
+  ByteIter& LittleEndianIter() { return GetLittleEndianIter(); };
 
  private:
-   //only for writing ?
+  // only for writing ?
   virtual std::byte& GetBit(bits_t::size_type idx) = 0;
   virtual std::byte GetBit(bits_t::size_type idx) const = 0;
 
@@ -138,25 +189,12 @@ class THOTH_EXPORT BitString {
 
   virtual BitString& ApplyBitwiseArithmetic(
       const BitString& rhs,
-      std::function<std::byte(std::byte, std::byte)> f) noexcept = 0;
+      std::function<std::byte(const std::byte, const std::byte)>
+          f) noexcept = 0;
+
+  virtual ByteIter& GetLittleEndianIter() = 0;
 };
 
-/************************
- * Non-member functions *
- ************************/
-
-/*******************************
- * Template Method Definitions *
- ******************************/
-//template <std::integral IntegerType>
-//BitString& BitString::operator<<=(IntegerType shift) noexcept {
-//  return *this;
-//}
-//
-//template <std::integral IntegerType>
-//BitString& BitString::operator>>=(IntegerType shift) noexcept {
-//  return *this;
-//}
 }  // namespace numeric
 }  // namespace thoth
 

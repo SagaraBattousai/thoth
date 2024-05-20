@@ -21,7 +21,7 @@ namespace numeric {
 
 // Actually as theyre all going to be big endian (I've just worked out why
 //  and itll only affect infinate BitString we may be able to get
-//  datamember in base class!
+//  datamember in base class! but then its protected so....
 
 class THOTH_EXPORT FixedLengthBitString : public BitString {
  public:
@@ -31,8 +31,6 @@ class THOTH_EXPORT FixedLengthBitString : public BitString {
   explicit FixedLengthBitString(unsigned long long bits, int length);
 
   FixedLengthBitString(const FixedLengthBitString&) = default;
-
-  //virtual ~FixedLengthBitString() noexcept override = default;
 
  private:
   virtual std::byte& GetBit(bits_t::size_type idx) override;
@@ -45,7 +43,8 @@ class THOTH_EXPORT FixedLengthBitString : public BitString {
   virtual FixedLengthBitString& ApplyBitwiseArithmetic(
       const BitString& rhs,
       // Check more effective c++ item 33 for this ^^
-      std::function<std::byte(std::byte, std::byte)> f) noexcept override;
+      std::function<std::byte(const std::byte, const std::byte)> f) noexcept
+      override;
 
   // virtual BitString& LShift(
   //   Covariant return so change ^ to V
@@ -56,6 +55,25 @@ class THOTH_EXPORT FixedLengthBitString : public BitString {
       void* shift, std::size_t size_of_shift) noexcept override;
 
   virtual void DoInvert() noexcept override;
+
+  class THOTH_LOCAL LittleEndianByteIter : public ByteIter {
+   public:
+    LittleEndianByteIter() = default;
+    LittleEndianByteIter(std::vector<std::byte>::reverse_iterator it,
+                         std::vector<std::byte>::reverse_iterator end);
+   private:
+    virtual bool DoHasNext() const override;
+    virtual std::byte& Deref() const override;
+    virtual void DoNext() override;
+
+    std::vector<std::byte>::reverse_iterator it_;
+    std::vector<std::byte>::reverse_iterator end_;
+    
+  };
+
+  virtual ByteIter& GetLittleEndianIter() override {
+    return LittleEndianByteIter(bits_.rbegin(), bits_.rend());
+  }
 
   std::vector<std::byte> bits_;
 };
