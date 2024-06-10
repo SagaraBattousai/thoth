@@ -1,6 +1,6 @@
 
 #include <thoth/numeric/fixed_length_bitstring.h>
-//#include <thoth/utility.h>
+// #include <thoth/utility.h>
 
 #include <bitset>
 #include <type_traits>
@@ -15,27 +15,25 @@ constexpr unsigned char kByteMask = 0xFF;
 constexpr unsigned char kBitsInByte = 8;
 constexpr unsigned char kBigEndianIndexMax = kBitsInByte - 1;
 
-
-//TODO: VV We need length as datamember as non multiple of 8 can cause issues
+// TODO: VV We need length as datamember as non multiple of 8 can cause issues
 
 // Since we cant have a template constructor we use this instead.
 template <typename T>
 void InitBitString(std::vector<std::byte>& bitString, T bits) {
-  
-  //since the size is fixed and we want this code to be nice for embedded.
+  // since the size is fixed and we want this code to be nice for embedded.
   bitString.shrink_to_fit();
 
-  //apparently having a variable in both parts of the conditional does not lift
-  //its scope
-  
+  // apparently having a variable in both parts of the conditional does not lift
+  // its scope
+
   int startIndex = 0;
   unsigned shiftBy = 0;
-  //TODO: handle case when length > bits!
+  // TODO: handle case when length > bits!
   if (bitString.size() > sizeof(T)) {
-    startIndex = (int) (bitString.size() - sizeof(T));
+    startIndex = (int)(bitString.size() - sizeof(T));
     shiftBy = (sizeof(T) - 1) * kBitsInByte;
   } else {
-    shiftBy = (unsigned) ((bitString.size() - 1) * kBitsInByte);
+    shiftBy = (unsigned)((bitString.size() - 1) * kBitsInByte);
   }
 
   for (auto i = startIndex; i < bitString.size(); i++) {
@@ -50,45 +48,30 @@ void InitBitString(std::vector<std::byte>& bitString, T bits) {
 }  // namespace
 
 FixedLengthBitString::FixedLengthBitString(unsigned char bits, int length)
-    : bits_((std::vector<std::byte>::size_type)length, std::byte(bits)) {
+    : bits_((std::vector<std::byte>::size_type)length, std::byte(bits)),
+      length_{length} {
   bits_.shrink_to_fit();
 }
 
 FixedLengthBitString::FixedLengthBitString(unsigned int bits, int length)
-    : bits_((std::vector<std::byte>::size_type)length) {
+    : bits_((std::vector<std::byte>::size_type)length), length_{length} {
   InitBitString(bits_, bits);
 }
 
 FixedLengthBitString::FixedLengthBitString(unsigned long bits, int length)
-    : bits_((std::vector<std::byte>::size_type)length) {
+    : bits_((std::vector<std::byte>::size_type)length), length_{length} {
   InitBitString(bits_, bits);
 }
 
 FixedLengthBitString::FixedLengthBitString(unsigned long long bits, int length)
-    : bits_((std::vector<std::byte>::size_type)length) {
+    : bits_((std::vector<std::byte>::size_type)length), length_{length} {
   InitBitString(bits_, bits);
 }
+FixedLengthBitString::FixedLengthBitString(std::vector<std::byte> bitstring)
+    : bits_(bitstring), length_{bitstring.size()} {}
 
-std::byte FixedLengthBitString::GetBit(bits_t::size_type idx) const {
-  auto byte_index = idx / kBitsInByte;                        // integer devision
-  auto bit_index = kBigEndianIndexMax - (idx % kBitsInByte);  // BigEndian index
-
-  // Should we call GetByte as it's currently the same but if we change GetByte
-  // then should this be the same?
-  std::byte byte = bits_[byte_index];
-
-  return ((byte >> bit_index) & BitString::kOne);
-
-}
-
-// Returns for modifying not reading therefore must return reference to
-//  entire byte. Probably do want SetBit only! TODO:
-std::byte& FixedLengthBitString::GetBit(bits_t::size_type idx) {
-  auto byte_index = idx / kBitsInByte;  // integer devision
-  //auto bit_index = kBigEndianIndexMax - (idx % kBitsInByte);  // BigEndian index
-
-  return bits_[byte_index];
-}
+  FixedLengthBitString::FixedLengthBitString(std::vector<std::byte> bitstring, int length)
+      : bits_(bitstring), length_{length} {}
 
 std::ostream& FixedLengthBitString::StreamOut(std::ostream& os) const noexcept {
   auto flags = os.flags();
@@ -109,7 +92,8 @@ std::ostream& FixedLengthBitString::StreamOut(std::ostream& os) const noexcept {
       os << std::bitset<4>(
                 (std::to_integer<unsigned int>(this->bits_[i]) & 0xF0) >> 4)
          << "_"
-         << std::bitset<4>(std::to_integer<unsigned int>(this->bits_[i]) & 0x0F);
+         << std::bitset<4>(std::to_integer<unsigned int>(this->bits_[i]) &
+                           0x0F);
       if (i < this->bits_.size() - 1) {
         os << " ";
       }
@@ -129,62 +113,39 @@ void FixedLengthBitString::DoInvert() noexcept {
 FixedLengthBitString& FixedLengthBitString::ApplyBitwiseArithmetic(
     const BitString& rhs,
     std::function<std::byte(const std::byte, const std::byte)> f) noexcept {
+  // auto this_iter = this->bits_.rbegin();
+  ////auto rhs_iter = rhs.CLittleEndianIter();
 
-  auto this_iter = this->bits_.rbegin();
-  //auto rhs_iter = rhs.CLittleEndianIter();
+  // auto this_end_iter = this->bits_.rend();
+  ////auto rhs_end_iter = rhs.CLittleEndianEndIter();
 
-  auto this_end_iter = this->bits_.rend();
-  //auto rhs_end_iter = rhs.CLittleEndianEndIter();
+  // BitString::ByteIter& rhs_iter = rhs.
 
-  BitString::ByteIter& rhs_iter = rhs.
-
-  while (this_iter != this_end_iter && rhs_iter != rhs_end_iter) {
-    *this_iter = f(*this_iter, *rhs_iter);
-    ++this_iter;
-    ++rhs_iter;
-  }
-  //Cant use size to do rest, check enditers!!
-  if (this_iter != this_end_iter) {
-    while (this_iter != this_end_iter) {
-      *this_iter = f(*this_iter, kZero);
-      ++this_iter;
-    }
-  }
+  // while (this_iter != this_end_iter && rhs_iter != rhs_end_iter) {
+  //   *this_iter = f(*this_iter, *rhs_iter);
+  //   ++this_iter;
+  //   ++rhs_iter;
+  // }
+  ////Cant use size to do rest, check enditers!!
+  // if (this_iter != this_end_iter) {
+  //   while (this_iter != this_end_iter) {
+  //     *this_iter = f(*this_iter, kZero);
+  //     ++this_iter;
+  //   }
+  // }
 
   return *this;
 }
 
 FixedLengthBitString& FixedLengthBitString::LShift(
-  void* shift, std::size_t size_of_shift) noexcept {
+    void* shift, std::size_t size_of_shift) noexcept {
   return *this;
 }
 
 FixedLengthBitString& FixedLengthBitString::RShift(
-  void* shift, std::size_t size_of_shift) noexcept {
+    void* shift, std::size_t size_of_shift) noexcept {
   return *this;
 }
-
-
-
-
-//////////////// ITER ///////////////////////////////////
-FixedLengthBitString::LittleEndianByteIter::LittleEndianByteIter(
-    std::vector<std::byte>::reverse_iterator it,
-    std::vector<std::byte>::reverse_iterator end)
-    : it_{it}, end_{end} {}
-
-bool FixedLengthBitString::LittleEndianByteIter::DoHasNext() const {
-  return it_ != end_;
-}
-std::byte& FixedLengthBitString::LittleEndianByteIter::Deref() const { return *it_; }
-void FixedLengthBitString::LittleEndianByteIter::DoNext() {
-  ++it_;
-}
-
-
-
-
-
 
 }  // namespace numeric
 }  // namespace thoth

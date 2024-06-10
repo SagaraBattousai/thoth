@@ -30,21 +30,45 @@ class THOTH_EXPORT FixedLengthBitString : public BitString {
   explicit FixedLengthBitString(unsigned long bits, int length);
   explicit FixedLengthBitString(unsigned long long bits, int length);
 
+  //TODO: Check this out and check the whole universal ref
+  // vs value in modern effective c++
+  //Also possibly add one that specifies length
+  FixedLengthBitString(std::vector<std::byte> bitstring);
+  FixedLengthBitString(std::vector<std::byte> bitstring, int length);
+
   FixedLengthBitString(const FixedLengthBitString&) = default;
 
+ protected:
+   //TODO: Implement after we decide on little or big endian internals!
+   virtual std::byte operator[](int idx) const noexcept override {
+    return bits_[idx];
+  }
+
+   virtual std::byte& operator[](int idx) noexcept override {
+    return bits_[idx];
+  }
+
+  virtual std::byte DoGetBit(int idx) const noexcept override {
+    return BitString::DoGetBit(idx);
+  }
+
+  virtual void DoSetBit(int idx) noexcept override { 
+    BitString::DoSetBit(idx); 
+  }
+
+  virtual void DoClearBit(int idx) noexcept override {
+    BitString::DoClearBit(idx);
+  }
+
+  virtual void DoFlipBit(int idx) noexcept override {
+    BitString::DoFlipBit(idx);
+  }
+
  private:
-  virtual std::byte& GetBit(bits_t::size_type idx) override;
-  virtual std::byte GetBit(bits_t::size_type idx) const override;
+
+   virtual int GetLength() const noexcept override { return length_; }
 
   virtual std::ostream& StreamOut(std::ostream&) const noexcept override;
-
-  // virtual BitString& ApplyBitwiseArithmetic(
-  // Covariant return so change ^ to V
-  virtual FixedLengthBitString& ApplyBitwiseArithmetic(
-      const BitString& rhs,
-      // Check more effective c++ item 33 for this ^^
-      std::function<std::byte(const std::byte, const std::byte)> f) noexcept
-      override;
 
   // virtual BitString& LShift(
   //   Covariant return so change ^ to V
@@ -56,26 +80,17 @@ class THOTH_EXPORT FixedLengthBitString : public BitString {
 
   virtual void DoInvert() noexcept override;
 
-  class THOTH_LOCAL LittleEndianByteIter : public ByteIter {
-   public:
-    LittleEndianByteIter() = default;
-    LittleEndianByteIter(std::vector<std::byte>::reverse_iterator it,
-                         std::vector<std::byte>::reverse_iterator end);
-   private:
-    virtual bool DoHasNext() const override;
-    virtual std::byte& Deref() const override;
-    virtual void DoNext() override;
-
-    std::vector<std::byte>::reverse_iterator it_;
-    std::vector<std::byte>::reverse_iterator end_;
-    
-  };
-
-  virtual ByteIter& GetLittleEndianIter() override {
-    return LittleEndianByteIter(bits_.rbegin(), bits_.rend());
-  }
+  // virtual BitString& ApplyBitwiseArithmetic(
+  // Covariant return so change ^ to V
+  virtual FixedLengthBitString& ApplyBitwiseArithmetic(
+      const BitString& rhs,
+      // Check more effective c++ item 33 for this ^^
+      std::function<std::byte(const std::byte, const std::byte)> f) noexcept
+      override;
 
   std::vector<std::byte> bits_;
+  int length_;
+
 };
 
 }  // namespace numeric

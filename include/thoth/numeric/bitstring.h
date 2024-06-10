@@ -7,7 +7,9 @@
 #include <concepts>
 #include <cstddef>
 #include <functional>
+#include <iterator>
 #include <ostream>
+#include <ranges>
 #include <vector>
 
 namespace thoth {
@@ -18,22 +20,29 @@ namespace numeric {
  * Decide on Endianness!
  */
 class THOTH_EXPORT BitString {
- protected:
-  // protected alias'
 
-  // Is this forcing us to use vector? should this change? What about Iters?
-  //  How do we say any iter that returns std::byte
-  using bits_t = std::vector<std::byte>;
+ public:
+
   static constexpr std::byte kOne = std::byte{0x01};
   static constexpr std::byte kZero = std::byte{0x00};
 
- public:
+  static constexpr std::byte kAllOnes = std::byte{0xFF};
+
   virtual ~BitString() = default;
 
-  std::byte operator[](bits_t::size_type idx) const { return GetBit(idx); }
+  // Not called size as this isn't a collecton but rather a type in itself.
+  // Originally called NumBits but I thing Length is .... more formal
+  int Length() const noexcept { return GetLength(); }
 
-  // only for writing ?
-  std::byte& operator[](bits_t::size_type idx) { return GetBit(idx); }
+  std::byte GetBit(int idx) const noexcept { return DoGetBit(idx); }
+
+  bool CheckBit(int idx) const noexcept { return kOne == DoGetBit(idx); }
+  
+  void SetBit(int idx) noexcept { DoSetBit(idx); }
+
+  void ClearBit(int idx) noexcept { DoClearBit(idx); }
+
+  void FlipBit(int idx) noexcept { DoFlipBit(idx); }
 
   void Invert() noexcept { DoInvert(); }
 
@@ -62,7 +71,7 @@ class THOTH_EXPORT BitString {
   // Needs to be a friend but also good to hide from non-ADL lookup
   // (AKA Hiden Friend)
   friend THOTH_EXPORT std::ostream& operator<<(std::ostream& os,
-                                               const BitString& bs) {
+                                               const BitString& bs) noexcept {
     return bs.StreamOut(os);
   }
 
@@ -73,21 +82,21 @@ class THOTH_EXPORT BitString {
   // Or can we! Templates !?! Are templates already hidden from non-ADL lookup?
 
   // Could we pass by value??
-  template <typename T>
-    requires std::derived_from<T, BitString>
+  template <typename T, typename U>
+    requires std::derived_from<T, BitString> && std::derived_from<U, BitString>
   friend T operator|(const T& lhs, const T& rhs) noexcept {
     return T(lhs) |= rhs;
     // lhs.DoBinaryBitwise(rhs, std::bit_or<std::byte>{})
   }
 
-  template <typename T>
-    requires std::derived_from<T, BitString>
+  template <typename T, typename U>
+    requires std::derived_from<T, BitString> && std::derived_from<U, BitString>
   friend T operator&(const T& lhs, const T& rhs) noexcept {
     return T(lhs) &= rhs;
   }
 
-  template <typename T>
-    requires std::derived_from<T, BitString>
+  template <typename T, typename U>
+    requires std::derived_from<T, BitString> && std::derived_from<U, BitString>
   friend T operator^(const T& lhs, const T& rhs) noexcept {
     return T(lhs) ^= rhs;
   }
@@ -119,63 +128,37 @@ class THOTH_EXPORT BitString {
     return lhs;*/
     return T(lhs) >>= shift;
   }
-  
+
  protected:
   // BitString(const BitString&) = default;
 
-  // For now: This will be a Forward Iter as this is all we need even though
-  // Anyone using Array, vector etc will have a contiguous iterator for free.
-  // Actually now this is protected its safe to leave as Forward but maybe
-  // BitIter will require a change?
-  // This may allow us to lift more code into here
-  //
-  // Different attempt now!
+  // Must be big endian access
+  virtual std::byte operator[](int idx) const noexcept = 0;
 
-  // template <typename It>
-  // class BitStringByteIter {
-  // public:
-  //  using difference_type = std::ptrdiff_t;
-  //  using value_type = std::byte;
-  //  using iterator_concept = std::forward_iterator_tag;
+  virtual std::byte& operator[](int idx) noexcept = 0;
 
-  //  value_type operator*() const { return Deref(); };
-  //  It& operator++() { return PrefixInc(); }
+  /////////////////////////////////////////////////////////////////////////////
+  // The following functions have a default implementation (hence protected
+  //  instead of private) but are pure so that the implementor must explicitly
+  //  state if they want to use the default implemntation.
+  // 
+  // Or what if I made these non-virtual and made the pure version private?
+  // But then there would be a third name (but it would just be called DefaultXyz
+  // 
+  /////////////////////////////////////////////////////////////////////////////
+  virtual std::byte DoGetBit(int idx) const noexcept = 0;
 
-  //  It operator++(int) {
-  //    //auto tmp = *this;
-  //    ++*this;
-  //    //return tmp;
-  //  }
+  virtual void DoSetBit(int idx) noexcept = 0;
 
-  //  bool operator==(const BitStringByteIter& rhs) const {
-  //    return DoEquality(rhs);
-  //  }
+  virtual void DoClearBit(int idx) noexcept = 0;
 
-  // private:
-  //  virtual value_type Deref() const = 0;
-  //  virtual It& PrefixInc() = 0;
-  //  virtual bool DoEquality(const BitStringByteIter& rhs) const = 0;
-  //};
+  virtual void DoFlipBit(int idx) noexcept = 0;
 
-  // Final attempt //Maybe make more c++y later
-  class THOTH_EXPORT ByteIter {
-   public:
-    bool HasNext() const { return DoHasNext(); }
-    std::byte& operator*() const { return Deref(); };
-    void Next() { DoNext(); };
-
-   private:
-    virtual bool DoHasNext() const = 0;
-    virtual std::byte& Deref() const = 0;
-    virtual void DoNext() = 0;
-  };
-
-  ByteIter& LittleEndianIter() { return GetLittleEndianIter(); };
+  //////////////////////////////////////////////////////////////////
 
  private:
-  // only for writing ?
-  virtual std::byte& GetBit(bits_t::size_type idx) = 0;
-  virtual std::byte GetBit(bits_t::size_type idx) const = 0;
+
+  virtual int GetLength() const noexcept = 0;
 
   virtual std::ostream& StreamOut(std::ostream&) const noexcept = 0;
 
@@ -192,7 +175,7 @@ class THOTH_EXPORT BitString {
       std::function<std::byte(const std::byte, const std::byte)>
           f) noexcept = 0;
 
-  virtual ByteIter& GetLittleEndianIter() = 0;
+  // virtual std::ranges::iterator_t<std::byte> GetLittleEndianIter() = 0;
 };
 
 }  // namespace numeric
