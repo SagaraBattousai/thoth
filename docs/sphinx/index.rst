@@ -2,8 +2,10 @@
 
 Welcome to Thoth's documentation!
 ==========================================
-**Thoth** is a light weight, SIMD optimised C interop Matrix Library
-Fast SIMD Martix C++ Library with C interop
+**Thoth** is a C++20 Computer Science Library
+
+.. light weight, SIMD optimised C interop Matrix Library
+ Fast SIMD Martix C++ Library with C interop
 
 .. note::
    This project is under active development
@@ -14,8 +16,11 @@ Fast SIMD Martix C++ Library with C interop
    :name: sec-thoth
 
    thoth/concepts/index
+   thoth/crypto/index
+   thoth/ml/index
    thoth/ndarray/index
    thoth/network/index
+   thoth/numeric/index
    thoth/utility/index
 
 * :ref:`genindex`

@@ -13,6 +13,8 @@ add_subdirectory(network)
 
 add_subdirectory(numeric)
 
+add_subdirectory(random)
+
 add_subdirectory(utility)
 
 

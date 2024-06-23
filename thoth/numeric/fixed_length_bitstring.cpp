@@ -68,7 +68,7 @@ FixedLengthBitString::FixedLengthBitString(unsigned long long bits, int length)
   InitBitString(bits_, bits);
 }
 FixedLengthBitString::FixedLengthBitString(std::vector<std::byte> bitstring)
-    : bits_(bitstring), length_{bitstring.size()} {}
+    : bits_(bitstring), length_{(int) bitstring.size()} {}
 
   FixedLengthBitString::FixedLengthBitString(std::vector<std::byte> bitstring, int length)
       : bits_(bitstring), length_{length} {}

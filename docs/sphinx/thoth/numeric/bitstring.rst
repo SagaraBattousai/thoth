@@ -1,0 +1,5 @@
+
+BitString
+=========
+
+.. doxygenfile:: bitstring.h
