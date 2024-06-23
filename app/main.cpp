@@ -15,8 +15,7 @@ using thoth::numeric::BitString;
 using thoth::numeric::FixedLengthBitString;
 
 int main() {
-  thoth::UniformIntegralGenerator<int> rng(
-      std::uniform_int_distribution<int>{1, 7});
+  thoth::random::UniformIntegralRNG rng(1, 7);
 
   double acc = 0;
   const int N = 10;
