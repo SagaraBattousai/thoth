@@ -15,19 +15,8 @@ using thoth::numeric::BitString;
 using thoth::numeric::FixedLengthBitString;
 
 int main() {
-  thoth::random::UniformIntegralRNG rng(1, 7);
-
-  double acc = 0;
-  const int N = 10;
-  int rv;
-  for (int i = 0; i < N; ++i) {
-    rv = rng();
-    acc += rv;
-    std::cout << "i : " << i << " => rand = " << rv << std::endl;
-  }
-
-  std::cout << "Avg: " << (acc / N) << std::endl;
-  std::cout << "EXP: " << (double(1 + 2 + 3 + 4 + 5 + 6 + 7) / 7) << std::endl;
+  auto x = std::uniform_int_distribution(1, 8);
+  auto p = x.param();
 
   return 0;
 }

@@ -5,91 +5,50 @@
 
 #ifdef __cplusplus
 // #include <cstddef>
-
-#include <thoth/concepts.h>
-// #include <thoth/ml/genetic/gene_base.h>
 #include <thoth/ml/genetic/crossover.h>
 
 #include <random>
-#include <utility>
 
 namespace thoth {
-// template <typename> typename Gene,
+namespace ml {
+namespace genetic {
 
-//
-// template <
-//    typename T, typename Generator = std::default_random_engine,
-//    RandomIntegralDist<Generator> Dist = std::uniform_int_distribution<int>>
+// Okay! Please note I went way way too over the top with my random code and
+//  It's too complex and flexible (which we dont need, we can just write a
+//  subclass per random distribution, well not quite but for now lets just get
+//  this done as is
 
-// Do the generator and dist get automatically infered by default values in
-// constructor?
-
-template <typename Gene, typename Generator, RandomIntegralDist<Generator> Dist,
-          template <typename, typename> typename Crossover>
-class RandomCrossover : public Crossover<RandomCrossover, Gene> {
+template <typename Gene, template <typename, typename> typename Crossover>
+class RandomUniformCrossover : public Crossover<RandomUniformCrossover, Gene> {
  public:
-  RandomCrossover();
-  RandomCrossover(std::random_device::result_type seed);
-  RandomCrossover(Generator generator, Dist dist);
+  RandomUniformCrossover(
+      std::random_device::result_type seed = std::random_device{}());
 
   int GetCrossoverPoint(int start, int end) {
-
-    //Note that mod isn't great (as it's not uniform due to issues if max isn't
-    // 
-
+    dist_.param(std::uniform_int_distribution<int>::param_type{start, end});
+    return dist_(urbg_);
   }
 
  private:
-  Generator generator_;
-  Dist dist_;
+  decltype(std::default_random_engine()) urbg_;
+  std::uniform_int_distribution<int> dist_;
 };
 
-template <typename T, typename Generator, RandomIntegralDist<Generator> Dist>
-void RandomSingleCrossover(Generator& gen,
-                           Dist& dist,  // make UniversalTemplate?
-                           const T& parent1, const T& parent2, T* const child1,
-                           T* const child2) {}
-template <typename T>
-inline void RandomSingleCrossover(const T& parent1, const T& parent2,
-                                  T* const child1, T* const child2) {
-  std::default_random_engine gen{};
-  std::uniform_int_distribution<int> dist{};
-  RandomSingleCrossover(gen, dist, parent1, parent2, child1, child2);
-}
-
-// template <typename T>
-// class Crossover {
-//
-//   //Wish I could be cleverer with the concepts for the template arguments but
-//   alas.
-//
-//
-//   //TODO: check signature
-//   T Crossover(const T& otherParent) const {
-//     const T& thisParent = static_cast<T&>(*this);
-//
-//   }
-//
-// };
-
-template <typename Gene, typename Generator, RandomIntegralDist<Generator> Dist,
-          template <typename, typename> typename Crossover>
-RandomCrossover<Gene, Generator, Dist, Crossover>::RandomCrossover()
-    : RandomCrossover(std::random_device{}()) {}
-
-template <typename Gene, typename Generator, RandomIntegralDist<Generator> Dist,
-          template <typename, typename> typename Crossover>
-RandomCrossover<Gene, Generator, Dist, Crossover>::RandomCrossover(
+template <typename Gene, template <typename, typename> typename Crossover>
+RandomUniformCrossover<Gene, Crossover>::RandomUniformCrossover(
     std::random_device::result_type seed)
-    : RandomCrossover(std::default_random_engine{seed},
-                      std::uniform_int_distribution<int>{}) {}
+    :urbg_(std::default_random_engine(seed)),
+      dist_(std::uniform_int_distribution()) {}
 
-template <typename Gene, typename Generator, RandomIntegralDist<Generator> Dist,
-          template <typename, typename> typename Crossover>
-RandomCrossover<Gene, Generator, Dist, Crossover>::RandomCrossover(
-    Generator generator, Dist dist)
-    : generator_(generator), dist_(dist) {}
+//template <typename Gene, template <typename, typename> typename Crossover>
+//int RandomUniformCrossover<Gene, Crossover>::GetCrossoverPoint(int start,
+//                                                               int end) {
+//  dist_.param(std::uniform_int_distribution<int>::param_type{start, end});
+//  return dist_(urbg_);
+//}
 
+}  // namespace genetic
+}  // namespace ml
 }  // namespace thoth
 #endif  // __cplusplus
 #endif

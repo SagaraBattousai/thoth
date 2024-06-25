@@ -28,7 +28,7 @@ class SinglePointCrossover {
     // Force int as subclass can decide how to cast/convert.
     //  Additionally it keeps interface uniform
     int point =
-        static_cast<Derived*>(this)->GetCrossoverPoint(0, gene_length);
+        static_cast<Derived*>(this)->GetCrossoverPoint(0, gene_length - 1);
 
     auto p1_it = parent1.cbegin();
     auto p2_it = parent2.cbegin();

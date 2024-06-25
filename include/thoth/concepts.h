@@ -59,8 +59,8 @@ concept RandomIntegralDist = requires(Dist& d, Generator& g) {
 };
 
 // TODO: Make this better (and maybe more like python generators)
-// template <typename T>
-// concept Generator
+//template <typename G, typename T>
+//concept Generator = 
 
 //Not the best name as this is a combination of generator and dist
 
