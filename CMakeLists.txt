@@ -28,7 +28,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 include(SystemCheck)
 include(LibUtils)
@@ -44,7 +44,7 @@ if(MSVC)
   set(VS_STARTUP_PROJECT "app_cpp_thoth")
 else()
   add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unknown-pragmas
-                      -Wno-unused-private-field) # -Wno-unused-parameter)
+                      -Wno-unused-private-field -Wno-unused-parameter)
 endif()
 
 set(THOTH_BUILD_DOCS

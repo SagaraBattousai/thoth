@@ -122,7 +122,7 @@ class THOTH_EXPORT BitString {
 
   template <typename T, std::integral IntegerType>
     requires std::derived_from<T, BitString>
-  friend THOTH_EXPORT constexpr BitString operator>>(
+  friend THOTH_EXPORT constexpr T operator>>(
       const T& lhs, IntegerType shift) noexcept {
     /*lhs >>= shift;
     return lhs;*/
