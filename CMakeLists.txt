@@ -37,7 +37,6 @@ include(DocsUtils)
 
 set_system_arch_vars()
 
-
 if(MSVC)
   # Wall removed as msvc has some errors that trigger this wd4100 is temporary
   add_compile_options(/permissive- /WX /W4 /wd4251 /wd4100)
@@ -54,8 +53,6 @@ set(THOTH_BUILD_TESTS
     OFF
     CACHE BOOL "Whether or not to build tests.")
 
-
-
 set(MODULE_ROOT "${PROJECT_SOURCE_DIR}/include")
 
 add_subdirectory(thoth)
@@ -68,8 +65,6 @@ endif()
 
 if(THOTH_BUILD_DOCS)
   add_subdirectory(docs)
-  # Do I need to add pulse's dependancies as well or is that transitive!?
-  # add_dependencies(Doxygen <Target_dependancies>)
 endif()
 
 # if(MSVC) set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT <Startup_Project>)
@@ -105,4 +100,3 @@ endif()
 
 # install(DIRECTORY "${CMAKE_SOURCE_DIR}/docs/build/man/" DESTINATION
 # ${CMAKE_INSTALL_MANDIR}) endif()
-
