@@ -36,7 +36,7 @@ void InitBitString(std::vector<std::byte>& bitString, T bits) {
     shiftBy = (unsigned)((bitString.size() - 1) * kBitsInByte);
   }
 
-  for (auto i = startIndex; i < bitString.size(); i++) {
+  for (int i = startIndex; i < (int) bitString.size(); i++) {
     // bitString[i] = std::byte((bits & (static_cast<T>(kByteMask) << shiftBy))
     // >> shiftBy);
     bitString[i] = std::byte((bits >> shiftBy) & kByteMask);
@@ -68,7 +68,7 @@ FixedLengthBitString::FixedLengthBitString(unsigned long long bits, int length)
   InitBitString(bits_, bits);
 }
 FixedLengthBitString::FixedLengthBitString(std::vector<std::byte> bitstring)
-    : bits_(bitstring), length_{bitstring.size()} {}
+    : bits_(bitstring), length_{(int) bitstring.size()} {}
 
   FixedLengthBitString::FixedLengthBitString(std::vector<std::byte> bitstring, int length)
       : bits_(bitstring), length_{length} {}
@@ -88,7 +88,7 @@ std::ostream& FixedLengthBitString::StreamOut(std::ostream& os) const noexcept {
     }
   } else {
     os << "0b";
-    for (auto i = 0; i < this->bits_.size(); i++) {
+    for (std::vector<std::byte>::size_type i = 0; i < this->bits_.size(); ++i) {
       os << std::bitset<4>(
                 (std::to_integer<unsigned int>(this->bits_[i]) & 0xF0) >> 4)
          << "_"
